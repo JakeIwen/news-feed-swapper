@@ -33,6 +33,6 @@
     "ts-loader": "^0.8.2"
   },
   "scripts": {
-    "build": "webpack --config webpack.config.js"
+    "build": "rm -r build; webpack --config webpack.config.js"
   }
 }
