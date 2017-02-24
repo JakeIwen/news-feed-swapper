@@ -1,13 +1,14 @@
-var React = require( 'react' );
-var $ = require( 'jquery' );
+/*
+Creating a component
 
-var QuoteDisplay = require( './quote-display.tsx' ).default,
-	InfoPanel = require( './info-panel.jsx' );
+The most simple component has a `render` method that returns some
+JSX. `props` are attributes that are passed into the component
+when you instantiate it.
 
-import { IState } from '../store/reducer';
-import { showInfoPanel } from '../store/actions';
-import { areNewFeaturesAvailable } from '../store/selectors';
-import { connect } from 'react-redux';
+One caveat is that `render` must return a single parent element;
+you can't return multiple adjacent JSX tags but must wrap them
+in one parent element.
+*/
 
 var MessageItem = React.createClass({
   render: function() {
@@ -29,15 +30,30 @@ var MessageList = React.createClass({
     }
   },
   componentDidMount: function() {
-		var request = buildQuery('channels.history', '&channel=C0PK0SZDW');
-    console.log(request);
+    const self = this;
     //get list of 100 messages from a slack channel
- 		$.getJSON(request, function(data) {
- 			console.log('data', data);
- 			this.setState({
- 				msgData: data.messages.sort(dynamicSort("ts"))
- 			});
- 		}.bind(this));
+    var req = buildQuery('users.list');
+    var usersById = {};
+    $.getJSON(req, function(userList) {
+      console.log('userList', userList.members);
+      //create hash key
+      for (var i = 0; i < userList.members.length; i++) {
+        usersById[userList.members[i].id] = userList.members[i];
+      }
+    }).then(function() {
+      req = buildQuery('channels.history', '&channel=C0PK0SZDW');
+      //get message list
+      $.getJSON(req, function(data) {
+        //append user info to each message
+        for (var i = 0; i < data.messages.length; i++) {
+          data.messages[i].userData = usersById[data.messages[i].user];
+        }
+        console.log('messages', data.messages);
+        self.setState({
+          msgData: data.messages.sort(dynamicSort("-ts"))
+        });
+      }.bind(this));
+    });
 
  		function buildQuery (method, arg) {
  			arg = arg || '';
@@ -50,6 +66,7 @@ var MessageList = React.createClass({
   },
   render: function () {
     var messages = this.state.msgData.map(function (item, index) {
+      console.log('item', item.userData.);
       return (
         <MessageItem
           key={index}
@@ -68,35 +85,6 @@ var MessageList = React.createClass({
 
 });
 
-
-var NewsFeedEradicator = React.createClass( {
-	render: function() {
-		var quoteDisplay = null;
-		if ( this.props.quotesVisible === true ) {
-			quoteDisplay = (
-				<div>
-					<MessageList />
-					<QuoteDisplay />
-				</div>
-			);
-		}
-
-		let newFeatureLabel = null;
-		if ( this.props.newFeaturesAvailable ) {
-			newFeatureLabel = <span className="nfe-label nfe-new-features">New Features!</span>;
-		}
-
-		return (
-			<div>
-				{ this.props.infoPanelVisible && <InfoPanel /> }
-				{ quoteDisplay }
-				<a href="#"
-					className="nfe-info-link"
-					onClick={ this.props.showInfoPanel }>News Feed Eradicator { newFeatureLabel }</a>
-			</div>
-		);
-	}
-} );
 
 function timeConverter(UNIX_timestamp){
   var a = new Date(UNIX_timestamp * 1000);
@@ -122,14 +110,6 @@ function dynamicSort(property) {
     return result * sortOrder;
   }
 }
-const mapStateToProps = ( state ) => ( {
-	infoPanelVisible: state.showInfoPanel,
-	quotesVisible: state.showQuotes,
-	newFeaturesAvailable: areNewFeaturesAvailable( state ),
-} );
 
-const mapDispatchToProps = ( dispatch ) => ( {
-	showInfoPanel: () => dispatch( showInfoPanel() )
-} );
 
-module.exports = connect( mapStateToProps, mapDispatchToProps )( NewsFeedEradicator );
+ReactDOM.render(<MessageList />, document.getElementById('root'));
