@@ -176,11 +176,16 @@ var MessageList = React.createClass({
 		}
 	},
   replaceTextElements: function(text) {
+    var self = this;
+    // text = reactReplace(text, /<@([A-Z]|\d)+>/g, function(match, i) {
+    //   console.log('match2', match);
+    //   return ( <span className="userTag">{self.state.usersById[match.replace(/<|>|@/g, '')].name}</span> );
+    // });
     text = reactReplace(text, /<(https?:\/\/\S+>)/g, function(match, i) {
       console.log('original text', text);
       match = match.replace(/<|>/g, '');
       if (match.match(/vimeo|youtube|youtu\.be/g))
-        return ( <iframe className="slackFrame" src={match} /> )
+        return ( <iframe className="slackFrame" src={match.replace("watch?v=", "v/")} /> )
       else if (match.match(/jpg|\.png|\.gif|\.bmp|\.svg/g))
         return ( <img className="slackPic" src={match} /> )
     });
@@ -196,10 +201,11 @@ var MessageList = React.createClass({
       if (item.user) {
         return (
           <MessageItem
+            className="messageItem"
             key={index}
             ts={item.ts}
             user={self.state.usersById[item.user].name}
-            text={self.replaceTextElements(item.text.replace(/(@.........\|)/g, '').replace("watch?v=", "v/"))}
+            text={self.replaceTextElements(item.text.replace(/(@.........\|)/g, ''))}
             profile={self.state.usersById[item.user].profile}
           />
         );
