@@ -16,8 +16,8 @@ var dates = [];
 var SlackFeed = React.createClass({
   getInitialState: function() {
     return( {
-      chanGetSuccess: false,
-      mainGetSuccess: false
+      chanGet: false,
+      mainGet: false,
     } );
   },
   componentDidMount: function() {
@@ -35,7 +35,7 @@ var SlackFeed = React.createClass({
         teamInfo: res[0].team,
         chanList: res[1].channels,
         userList: res[2].members,
-        mainGetSuccess: true
+        mainGet: true
       });
     });
 	},
@@ -48,15 +48,13 @@ var SlackFeed = React.createClass({
       console.log('res data', res);
       self.setState({
         messageList: res.messages,
-        chanGetSuccess: true
+        chanGet: true
       });
     });
 	},
 	render: function() {
-    console.log(this.state.chanGetSuccess, this.state.mainGetSuccess);
-
     var feed = null;
-      if (this.state.chanGetSuccess && this.state.mainGetSuccess) {
+      if (this.state.chanGet && this.state.mainGet) {
         console.log('teaminfo', this.state.teamInfo);
         feed =
           <section>
@@ -116,13 +114,8 @@ var SlackLogo = React.createClass({
 
 var ChannelInfo = React.createClass({
 	getInitialState: function(){
-		return {
-			chanSelect: ''
-		}
+		return { chanSelect: '' }
 	},
-	// componentWillReceiveProps: function(nextProps) {
-	// 	console.log('willRecieve');
-	// },
 	componentDidMount: function() {
 		const self = this;
 		var chanSelect = [];
@@ -139,26 +132,27 @@ var ChannelInfo = React.createClass({
 	},
 	newChan: function (e) {
 		console.log('changed to', e);
-		if (typeof this.props.onChange === 'function') {
+		if (typeof this.props.onChange === 'function' && e) {
 			this.props.onChange(e.value);
+      this.setState({
+        selectedChan: e.value
+      });
 		}
+
 	},
 	render: function() {
-		//TODO: destroy this bad code and refacto
 		return (
 			<div className="chanInfo">
 				<h1>{'Team: ' + this.props.teamInfo.name}</h1>
 				<h2>{'Channel: '}</h2>
 					<Select
-						name='Select Channel'
 					  options={this.state.chanSelect}
-					  active={this.state.selectedChan}
+					  value={this.state.selectedChan}
 					  onChange={this.newChan} />
 			</div>
 		);
 	}
 });
-
 
 var MessageItem = React.createClass({
 	render: function() {
@@ -181,7 +175,7 @@ var MessageItem = React.createClass({
 
 			return (
 				<div>
-					{thisDate}
+					<span>{thisDate}</span>
 					<Tooltip
 						placement="right"
 						overlay={text}
@@ -228,7 +222,7 @@ var MessageList = React.createClass({
 						ts={item.ts}
 						user={self.state.usersById[item.user].name}
 						text={item.text}
-						profile={self.state.usersById[item.user]}
+						profile={self.state.usersById[item.user].profile}
 						/>
 				);
 		});
