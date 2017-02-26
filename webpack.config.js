@@ -63,8 +63,18 @@ module.exports = {
 				test: /\.tsx?$/,
 				exclude: /(node_modules|bower_components)/,
 				loader: 'babel-loader!ts-loader',
+			},
+			{
+			  test: /\.json$/,
+			  loader: 'json'
 			}
 		]
+	},
+	node: {
+		net: 'empty',
+		tls: 'empty',
+		dns: 'empty',
+		fs: 'empty'
 	},
 	// Use the plugin to specify the resulting filename (and add needed behavior to the compiler)
 	plugins: [

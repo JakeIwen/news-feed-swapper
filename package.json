@@ -30,7 +30,13 @@
     "webpack": "^1.13.0"
   },
   "dependencies": {
+    "async": "^2.1.5",
+    "json-loader": "^0.5.4",
+    "moment": "^2.17.1",
+    "rc-tooltip": "^3.4.2",
+    "react-select": "^1.0.0-rc.3",
     "react-textselect": "^0.2.0",
+    "request": "^2.79.0",
     "ts-loader": "^0.8.2"
   },
   "scripts": {

@@ -1,22 +1,106 @@
 var React = require( 'react' );
-var $ = require( 'jquery' );
-var Tooltip = require('rc-tooltip');
-var TextSelect = require('react-textselect');
+var Select = require('react-select');
 var moment = require('moment');
-// import 'rc-tooltip/assets/bootstrap_white.css';
+var request = require('request');
+var Tooltip = require('rc-tooltip');
+var async = require('async');
+var QuoteDisplay = require( './quote-display.tsx' ).default;
 
-
-var QuoteDisplay = require( './quote-display.tsx' ).default,
-InfoPanel = require( './info-panel.jsx' );
-
-import { IState } from '../store/reducer';
-import { showInfoPanel } from '../store/actions';
-import { areNewFeaturesAvailable } from '../store/selectors';
 import { connect } from 'react-redux';
+// import { SlackFeed } from './get-slack'
+import 'react-select/dist/react-select.css';
 
 //TODO avoid having to scope variables as such
 var dates = [];
-var currentChan = '';
+
+var SlackFeed = React.createClass({
+  getInitialState: function() {
+    return( {
+      chanGetSuccess: false,
+      mainGetSuccess: false
+    } );
+  },
+  componentDidMount: function() {
+		const self = this;
+    var urls = [
+      buildQuery('team.info'),
+      buildQuery('channels.list'),
+      buildQuery('users.list')
+    ];
+    async.map(urls, httpGet, function (err, res){
+      if (err) return console.log(err);
+      console.log('res asy', res);
+      self.newChan(res[1].channels[0].id);
+      self.setState({
+        teamInfo: res[0].team,
+        chanList: res[1].channels,
+        userList: res[2].members,
+        mainGetSuccess: true
+      });
+    });
+	},
+	newChan: function (chanId) {
+    var self = this;
+    console.log('new channel', chanId);
+    var url = buildQuery('channels.history', chanId);
+    httpGet(url, function (err, res){
+      if (err) return console.log(err);
+      console.log('res data', res);
+      self.setState({
+        messageList: res.messages,
+        chanGetSuccess: true
+      });
+    });
+	},
+	render: function() {
+    console.log(this.state.chanGetSuccess, this.state.mainGetSuccess);
+
+    var feed = null;
+      if (this.state.chanGetSuccess && this.state.mainGetSuccess) {
+        console.log('teaminfo', this.state.teamInfo);
+        feed =
+          <section>
+            <SlackLogo />
+            <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} onChange={this.newChan}/>
+            <MessageList userList={this.state.userList} messageList={this.state.messageList}/>
+          </section>;
+      }
+    return ( <div>{feed}</div> );
+  }
+});
+
+
+function httpGet(url, callback) {
+  const options = {
+    url :  url,
+    json : true
+  };
+  request(options,
+    function(err, res, body) {
+      console.log('request', res);
+      callback(err, body);
+    }
+  );
+}
+function buildQuery (method, arg) {
+  arg = (arg) ? ('&channel=' + arg) : '';
+  var token = '?token=xoxp-23646916496-23649242352-143236957938-e948672ba71d8389d3485803d2a07a15';
+  var query = 'https://slack.com/api/';
+  query += method + token + arg + '&pretty=1';
+  console.log('query', query);
+  return encodeURI(query);
+}
+function dynamicSort(property) {
+  var sortOrder = 1;
+  if(property[0] === "-") {
+    sortOrder = -1;
+    property = property.substr(1);
+  }
+  return function (a,b) {
+    var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+    return result * sortOrder;
+  }
+}
 
 var SlackLogo = React.createClass({
 	render: function() {
@@ -33,62 +117,45 @@ var SlackLogo = React.createClass({
 var ChannelInfo = React.createClass({
 	getInitialState: function(){
 		return {
-			chanInfo: {},
-			teamInfo: {}
+			chanSelect: ''
 		}
 	},
-	componentWillMount: function() {
+	// componentWillReceiveProps: function(nextProps) {
+	// 	console.log('willRecieve');
+	// },
+	componentDidMount: function() {
 		const self = this;
-		var req = buildQuery('team.info');
-		$.getJSON(req, function(teamInfo) {
-			console.log('teamInfo', teamInfo);
-			self.setState({
-				teamInfo: teamInfo
-			});
+		var chanSelect = [];
+		for (var i = 0; i < this.props.chanList.length; i++) {
+			chanSelect.push( {
+				value: this.props.chanList[i].id,
+				label: this.props.chanList[i].name
+			} );
+		}
+		this.setState({
+			chanSelect: chanSelect,
+			selectedChan: self.props.chanList[0].id
 		});
-		req = buildQuery('channels.list');
-		$.getJSON(req, function(chanList) {
-			console.log('chanList, mapped', chanList, chanList.channels.map(chan => chan.name));
-			currentChan = chanList.channels[2].id;
-			self.setState({
-				chanList: chanList.channels.map(chan => chan.name),
-				selectedOption: this.chanList[2]
-			});
-		});
-		// req = buildQuery('channels.info', '&channel=C0PK0SZDW');
-		// $.getJSON(req, function(chanInfo) {
-		// 	console.log('chanInfo', chanInfo);
-		// 	self.setState({
-		// 		chanInfo: chanInfo
-		// 	});
-		// })
 	},
-	onTextSelectChange: function (value) {
-		console.log('changed to', value);
-
+	newChan: function (e) {
+		console.log('changed to', e);
+		if (typeof this.props.onChange === 'function') {
+			this.props.onChange(e.value);
+		}
 	},
 	render: function() {
 		//TODO: destroy this bad code and refacto
-		if(this.state.teamInfo && this.state.teamInfo.team && this.state.chanInfo && this.state.chanInfo.channel) {
-			return (
-				<div className="chanInfo">
-					<h1>{'Team: ' + this.state.teamInfo.team.name}</h1>
-					<h2>{'Channel: '}
-						<TextSelect
-						  options={this.state.chanList.channels}
-						  active={this.state.selectedOption}
-						  onChange={this.onTextSelectChange} />
-					</h2>
-				</div>
-			);
-		} else {
-			return (
-				<div className="chanInfo">
-					<h1>{'Team: '}</h1>
-					<h2>{'Channel: '}</h2>
-				</div>
-			);
-		}
+		return (
+			<div className="chanInfo">
+				<h1>{'Team: ' + this.props.teamInfo.name}</h1>
+				<h2>{'Channel: '}</h2>
+					<Select
+						name='Select Channel'
+					  options={this.state.chanSelect}
+					  active={this.state.selectedChan}
+					  onChange={this.newChan} />
+			</div>
+		);
 	}
 });
 
@@ -105,11 +172,13 @@ var MessageItem = React.createClass({
 		} else {
 			thisDate = null;
 		}
-		var text =  <div>
+		var text =
+			<div>
 				<img src={this.props.profile.image_192} /><br />
 				<span>{this.props.profile.real_name}</span><br />
 				<span>{this.props.profile.email}</span><br />
 			</div>;
+
 			return (
 				<div>
 					{thisDate}
@@ -126,73 +195,48 @@ var MessageItem = React.createClass({
 		}
 	});
 
-	var MessageList = React.createClass({
-		getInitialState: function(){
-			return {
-				msgData: [{}]
-			}
-		},
-		componentDidMount: function() {
-			const self = this;
-			//get list of 100 messages from a slack channel
-			var req = buildQuery('team.info', currentChan);
-			$.getJSON(req, function(teamInfo) {
-				self.setState({
-					teamInfo: teamInfo
-				});
-			});
-			var req = buildQuery('users.list');
-			var usersById = {};
-			$.getJSON(req, function(userList) {
-				// console.log('userList', userList.members);
-				//create hash key
-
-				for (var i = 0; i < userList.members.length; i++) {
-					usersById[userList.members[i].id] = userList.members[i];
-				}
-			}).then(function() {
-				req = buildQuery('channels.history', currentChan);
-				//get message list
-				$.getJSON(req, function(data) {
-					//append user info to each message
-					console.log('msgs', data);
-					dates = [...new Set(data.messages.map(message => moment(Math.floor(message.ts*1000)).format('MMMM Do YYYY')))];
-					console.log('dates', dates);
-					for (var i = 0; i < data.messages.length; i++) {
-						data.messages[i].userData = usersById[data.messages[i].user];
-					}
-					// console.log('messages', data.messages);
-					self.setState({
-						msgData: data.messages.sort(dynamicSort("-ts"))
-					});
-				}.bind(this));
-			});
-
-
-		},
-		render: function () {
-			var messages = this.state.msgData.map(function (item, index) {
-				// console.log('item', item.userData);
-				if(item.userData && item.userData.name) {
-					return (
-						<MessageItem
-							key={index}
-							ts={item.ts}
-							user={item.userData.name}
-							text={item.text}
-							profile={item.userData.profile}
-							/>
-					);
-				}
-			});
-			return (
-				<section>
-					{messages}
-				</section>
-			);
+var MessageList = React.createClass({
+  getInitialState: function () {
+    return {
+      usersById: {}
+    }
+  },
+	componentWillMount: function() {
+		const self = this;
+		//get list of 100 messages from a slack channel
+		var usersById = {};
+		for (var i = 0; i < this.props.userList.length; i++) {
+			usersById[this.props.userList[i].id] = this.props.userList[i];
 		}
-
-	});
+    self.setState( {
+      usersById: usersById
+    } );
+		dates = [...new Set(this.props.messageList.map(message => moment(Math.floor(message.ts*1000)).format('MMMM Do YYYY')))];
+		console.log('dates', dates);
+		for (var i = 0; i < this.props.messageList.length; i++) {
+			this.props.messageList[i].userData = usersById[this.props.messageList[i].user];
+		}
+	},
+	render: function () {
+    var self = this;
+    console.log('state', this.state);
+		var messages = this.props.messageList.map(function (item, index) {
+			// console.log('item', item.userData);
+				return (
+					<MessageItem
+						key={index}
+						ts={item.ts}
+						user={self.state.usersById[item.user].name}
+						text={item.text}
+						profile={self.state.usersById[item.user]}
+						/>
+				);
+		});
+		return (
+				<div>{messages}</div>
+		);
+	}
+});
 
 	var NewsFeedEradicator = React.createClass( {
 		render: function() {
@@ -200,9 +244,7 @@ var MessageItem = React.createClass({
 			if ( this.props.quotesVisible === true ) {
 				quoteDisplay = (
 					<div className="feedField">
-						<SlackLogo />
-						<ChannelInfo />
-						<MessageList />
+						<SlackFeed />
 					</div>
 				);
 			}
@@ -215,9 +257,6 @@ var MessageItem = React.createClass({
 					<div>
 						{ this.props.infoPanelVisible && <InfoPanel /> }
 						{ quoteDisplay }
-						<a href="#"
-							className="nfe-info-link"
-							onClick={ this.props.showInfoPanel }>News Feed Eradicator { newFeatureLabel }</a>
 					</div>
 				);
 			}
@@ -246,7 +285,7 @@ var MessageItem = React.createClass({
 		const mapStateToProps = ( state ) => ( {
 			infoPanelVisible: state.showInfoPanel,
 			quotesVisible: state.showQuotes,
-			newFeaturesAvailable: areNewFeaturesAvailable( state ),
+			// newFeaturesAvailable: areNewFeaturesAvailable( state ),
 		} );
 
 		const mapDispatchToProps = ( dispatch ) => ( {
