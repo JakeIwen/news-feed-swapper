@@ -30,9 +30,11 @@
     "webpack": "^1.13.0"
   },
   "dependencies": {
+    "react-textselect": "^0.2.0",
     "ts-loader": "^0.8.2"
   },
   "scripts": {
-    "build": "rm -r build; webpack --config webpack.config.js"
+    "build": "rm -r build; webpack --config webpack.config.js",
+    "watch": "watch 'npm run build' ./src/"
   }
 }

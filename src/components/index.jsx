@@ -1,8 +1,9 @@
 var React = require( 'react' );
 var $ = require( 'jquery' );
 var Tooltip = require('rc-tooltip');
+var TextSelect = require('react-textselect');
 var moment = require('moment');
-import 'rc-tooltip/assets/bootstrap_white.css';
+// import 'rc-tooltip/assets/bootstrap_white.css';
 
 
 var QuoteDisplay = require( './quote-display.tsx' ).default,
@@ -13,8 +14,9 @@ import { showInfoPanel } from '../store/actions';
 import { areNewFeaturesAvailable } from '../store/selectors';
 import { connect } from 'react-redux';
 
-//TODO avoid having to scope variables as such:
+//TODO avoid having to scope variables as such
 var dates = [];
+var currentChan = '';
 
 var SlackLogo = React.createClass({
 	render: function() {
@@ -26,6 +28,7 @@ var SlackLogo = React.createClass({
 		)
 	}
 });
+//for async - make a parent element that passes all necessary properties to child elements and makes all ajax calls
 
 var ChannelInfo = React.createClass({
 	getInitialState: function(){
@@ -34,7 +37,7 @@ var ChannelInfo = React.createClass({
 			teamInfo: {}
 		}
 	},
-	componentDidMount: function() {
+	componentWillMount: function() {
 		const self = this;
 		var req = buildQuery('team.info');
 		$.getJSON(req, function(teamInfo) {
@@ -43,21 +46,39 @@ var ChannelInfo = React.createClass({
 				teamInfo: teamInfo
 			});
 		});
-		req = buildQuery('channels.info', '&channel=C0PK0SZDW');
-		$.getJSON(req, function(chanInfo) {
-			console.log('chanInfo', chanInfo);
+		req = buildQuery('channels.list');
+		$.getJSON(req, function(chanList) {
+			console.log('chanList, mapped', chanList, chanList.channels.map(chan => chan.name));
+			currentChan = chanList.channels[2].id;
 			self.setState({
-				chanInfo: chanInfo
+				chanList: chanList.channels.map(chan => chan.name),
+				selectedOption: this.chanList[2]
 			});
-		})
+		});
+		// req = buildQuery('channels.info', '&channel=C0PK0SZDW');
+		// $.getJSON(req, function(chanInfo) {
+		// 	console.log('chanInfo', chanInfo);
+		// 	self.setState({
+		// 		chanInfo: chanInfo
+		// 	});
+		// })
+	},
+	onTextSelectChange: function (value) {
+		console.log('changed to', value);
+
 	},
 	render: function() {
-		//TODO: destroy this bad code and refactor
+		//TODO: destroy this bad code and refacto
 		if(this.state.teamInfo && this.state.teamInfo.team && this.state.chanInfo && this.state.chanInfo.channel) {
 			return (
 				<div className="chanInfo">
 					<h1>{'Team: ' + this.state.teamInfo.team.name}</h1>
-					<h2>{'Channel: ' + this.state.chanInfo.channel.name}</h2>
+					<h2>{'Channel: '}
+						<TextSelect
+						  options={this.state.chanList.channels}
+						  active={this.state.selectedOption}
+						  onChange={this.onTextSelectChange} />
+					</h2>
 				</div>
 			);
 		} else {
@@ -81,11 +102,10 @@ var MessageItem = React.createClass({
 		if (idx != -1) {
 			dates.splice(idx, 1);
 			thisDate = <p className="date">{thisDate}</p>;
-				console.log('newdate', thisDate);
-			} else {
-				thisDate = null;
-			}
-			var text =  <div>
+		} else {
+			thisDate = null;
+		}
+		var text =  <div>
 				<img src={this.props.profile.image_192} /><br />
 				<span>{this.props.profile.real_name}</span><br />
 				<span>{this.props.profile.email}</span><br />
@@ -115,7 +135,7 @@ var MessageItem = React.createClass({
 		componentDidMount: function() {
 			const self = this;
 			//get list of 100 messages from a slack channel
-			var req = buildQuery('team.info', '&channel=C0PK0SZDW');
+			var req = buildQuery('team.info', currentChan);
 			$.getJSON(req, function(teamInfo) {
 				self.setState({
 					teamInfo: teamInfo
@@ -126,14 +146,16 @@ var MessageItem = React.createClass({
 			$.getJSON(req, function(userList) {
 				// console.log('userList', userList.members);
 				//create hash key
+
 				for (var i = 0; i < userList.members.length; i++) {
 					usersById[userList.members[i].id] = userList.members[i];
 				}
 			}).then(function() {
-				req = buildQuery('channels.history', '&channel=C0PK0SZDW');
+				req = buildQuery('channels.history', currentChan);
 				//get message list
 				$.getJSON(req, function(data) {
 					//append user info to each message
+					console.log('msgs', data);
 					dates = [...new Set(data.messages.map(message => moment(Math.floor(message.ts*1000)).format('MMMM Do YYYY')))];
 					console.log('dates', dates);
 					for (var i = 0; i < data.messages.length; i++) {
@@ -202,10 +224,11 @@ var MessageItem = React.createClass({
 		} );
 
 		function buildQuery (method, arg) {
-			arg = arg || '';
+			arg = (arg) ? ('&channel=' + arg) : '';
 			var token = '?token=xoxp-23646916496-23649242352-143236957938-e948672ba71d8389d3485803d2a07a15';
 			var query = 'https://slack.com/api/';
 			query += method + token + arg + '&pretty=1';
+			console.log('query', query);
 			return encodeURI(query);
 		}
 
