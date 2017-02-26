@@ -11,9 +11,6 @@ import { connect } from 'react-redux';
 // import { SlackFeed } from './get-slack'
 import 'react-select/dist/react-select.css';
 
-//TODO avoid having to scope variables as such
-var dates = [];
-
 var SlackFeed = React.createClass({
   getInitialState: function() {
     return( {
@@ -122,16 +119,6 @@ var ChannelInfo = React.createClass({
 
 var MessageItem = React.createClass({
 	render: function() {
-		var thisDate = moment(Math.floor(this.props.ts * 1000)).format('MMMM Do YYYY');
-		var idx = dates.indexOf(thisDate);
-		//dont display the same date multiple times in a row
-		//TODO look up React lookbehinds or something to avoid dates variable
-		if (idx != -1) {
-			dates.splice(idx, 1);
-			thisDate = <p className="date">{thisDate}</p>;
-		} else {
-			thisDate = null;
-		}
 		var text =
 			<div>
 				<img src={this.props.profile.image_192} /><br />
@@ -141,7 +128,7 @@ var MessageItem = React.createClass({
 
 		return (
 			<div>
-				<span>{thisDate}</span>
+				<p className="date">{this.props.date}</p>
 				<Tooltip
 					placement="right"
 					overlay={text}
@@ -157,23 +144,32 @@ var MessageItem = React.createClass({
 
 var MessageList = React.createClass({
   getInitialState: function () {
-    return {
-      usersById: {}
+    return { usersById: {} }
+  },
+  formatDates: function () {
+    var dates = this.props.messageList.map(message => moment(Math.floor(message.ts*1000)).format('MMMM Do YYYY'));
+    console.log('datesfirst', dates);
+    var lastDate = dates[0];
+    for (var i = 1; i < dates.length; i++) {
+      if (dates[i] != lastDate)
+        lastDate = dates[i];
+      else
+        dates[i] = null;
     }
+    console.log('dates', dates);
+    return dates;
   },
 	componentWillMount: function() {
 		const self = this;
-		//get list of 100 messages from a slack channel
 		var usersById = {};
-		for (var i = 0; i < this.props.userList.length; i++) {
-			usersById[this.props.userList[i].id] = this.props.userList[i];
-		}
+		for (var i = 0; i < self.props.userList.length; i++)
+			usersById[self.props.userList[i].id] = self.props.userList[i];
+    for (var i = 0; i < self.props.messageList.length; i++)
+      self.props.messageList[i].userData = usersById[self.props.messageList[i].user];
     self.setState( {
-      usersById: usersById
+      usersById: usersById,
+      dates: self.formatDates()
     } );
-		for (var i = 0; i < this.props.messageList.length; i++) {
-			this.props.messageList[i].userData = usersById[this.props.messageList[i].user];
-		}
 	},
   replaceTextElements: function(text) {
     var self = this;
@@ -189,12 +185,11 @@ var MessageList = React.createClass({
       else if (match.match(/jpg|\.png|\.gif|\.bmp|\.svg/g))
         return ( <img className="slackPic" src={match} /> )
     });
-    console.log(text);
+    console.log('after:', text);
     return text;
   },
 	render: function () {
     //TODO find way to not use widely scoped dates var
-    dates = [...new Set(this.props.messageList.map(message => moment(Math.floor(message.ts*1000)).format('MMMM Do YYYY')))];
     var self = this;
     console.log('state', this.state);
 		var messages = this.props.messageList.map(function (item, index) {
@@ -202,6 +197,7 @@ var MessageList = React.createClass({
         return (
           <MessageItem
             className="messageItem"
+            date={self.state.dates[index]}
             key={index}
             ts={item.ts}
             user={self.state.usersById[item.user].name}
