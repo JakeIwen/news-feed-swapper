@@ -1,10 +1,11 @@
-var React = require( 'react' );
-var Select = require('react-select');
-var moment = require('moment');
-var request = require('request');
-var Tooltip = require('rc-tooltip');
-var async = require('async');
-var QuoteDisplay = require( './quote-display.tsx' ).default;
+const React = require( 'react' );
+const Select = require('react-select');
+const moment = require('moment');
+const request = require('request');
+const Tooltip = require('rc-tooltip');
+const async = require('async');
+const reactReplace = require('react-string-replace')
+const QuoteDisplay = require( './quote-display.tsx' ).default;
 
 import { connect } from 'react-redux';
 // import { SlackFeed } from './get-slack'
@@ -67,39 +68,6 @@ var SlackFeed = React.createClass({
   }
 });
 
-
-function httpGet(url, callback) {
-  const options = {
-    url :  url,
-    json : true
-  };
-  request(options,
-    function(err, res, body) {
-      console.log('request', res);
-      callback(err, body);
-    }
-  );
-}
-function buildQuery (method, arg) {
-  arg = (arg) ? ('&channel=' + arg) : '';
-  var token = '?token=xoxp-23646916496-23649242352-143236957938-e948672ba71d8389d3485803d2a07a15';
-  var query = 'https://slack.com/api/';
-  query += method + token + arg + '&pretty=1';
-  console.log('query', query);
-  return encodeURI(query);
-}
-function dynamicSort(property) {
-  var sortOrder = 1;
-  if(property[0] === "-") {
-    sortOrder = -1;
-    property = property.substr(1);
-  }
-  return function (a,b) {
-    var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
-    return result * sortOrder;
-  }
-}
-
 var SlackLogo = React.createClass({
 	render: function() {
 		return (
@@ -110,11 +78,10 @@ var SlackLogo = React.createClass({
 		)
 	}
 });
-//for async - make a parent element that passes all necessary properties to child elements and makes all ajax calls
 
 var ChannelInfo = React.createClass({
 	getInitialState: function(){
-		return { chanSelect: '' }
+		return { chanSelect: [] }
 	},
 	componentDidMount: function() {
 		const self = this;
@@ -138,7 +105,6 @@ var ChannelInfo = React.createClass({
         selectedChan: e.value
       });
 		}
-
 	},
 	render: function() {
 		return (
@@ -173,21 +139,21 @@ var MessageItem = React.createClass({
 				<span>{this.props.profile.email}</span><br />
 			</div>;
 
-			return (
-				<div>
-					<span>{thisDate}</span>
-					<Tooltip
-						placement="right"
-						overlay={text}
-						arrowContent={<div className="rc-tooltip-arrow-inner"></div>}>
-						<a href="#" className="user">{this.props.user}:</a>
-					</Tooltip><br />
-					<span>{this.props.text}</span>
-					<br />
-				</div>
-			);
-		}
-	});
+		return (
+			<div>
+				<span>{thisDate}</span>
+				<Tooltip
+					placement="right"
+					overlay={text}
+					arrowContent={<div className="rc-tooltip-arrow-inner"></div>}>
+					<a href="#" className="user">{this.props.user}:</a>
+				</Tooltip><br />
+				<span>{this.props.text}</span>
+				<br />
+			</div>
+		);
+	}
+});
 
 var MessageList = React.createClass({
   getInitialState: function () {
@@ -205,26 +171,42 @@ var MessageList = React.createClass({
     self.setState( {
       usersById: usersById
     } );
-		dates = [...new Set(this.props.messageList.map(message => moment(Math.floor(message.ts*1000)).format('MMMM Do YYYY')))];
-		console.log('dates', dates);
 		for (var i = 0; i < this.props.messageList.length; i++) {
 			this.props.messageList[i].userData = usersById[this.props.messageList[i].user];
 		}
 	},
+  replaceTextElements: function(text) {
+    text = reactReplace(text, /<(https?:\/\/\S+>)/g, function(match, i) {
+      console.log('original text', text);
+      match = match.replace(/<|>/g, '');
+      if (match.match(/vimeo|youtube|youtu\.be/g))
+        return ( <iframe className="slackFrame" src={match} /> )
+      else if (match.match(/jpg|\.png|\.gif|\.bmp|\.svg/g))
+        return ( <img className="slackPic" src={match} /> )
+    });
+    console.log(text);
+    return text;
+  },
 	render: function () {
+    //TODO find way to not use widely scoped dates var
+    dates = [...new Set(this.props.messageList.map(message => moment(Math.floor(message.ts*1000)).format('MMMM Do YYYY')))];
     var self = this;
     console.log('state', this.state);
 		var messages = this.props.messageList.map(function (item, index) {
-			// console.log('item', item.userData);
-				return (
-					<MessageItem
-						key={index}
-						ts={item.ts}
-						user={self.state.usersById[item.user].name}
-						text={item.text}
-						profile={self.state.usersById[item.user].profile}
-						/>
-				);
+      if (item.user) {
+        return (
+          <MessageItem
+            key={index}
+            ts={item.ts}
+            user={self.state.usersById[item.user].name}
+            text={self.replaceTextElements(item.text.replace(/(@.........\|)/g, '').replace("watch?v=", "v/"))}
+            profile={self.state.usersById[item.user].profile}
+          />
+        );
+      } else {
+        return (<span>unknown element</span>)
+      }
+
 		});
 		return (
 				<div>{messages}</div>
@@ -232,58 +214,69 @@ var MessageList = React.createClass({
 	}
 });
 
-	var NewsFeedEradicator = React.createClass( {
-		render: function() {
-			var quoteDisplay = null;
-			if ( this.props.quotesVisible === true ) {
-				quoteDisplay = (
-					<div className="feedField">
-						<SlackFeed />
-					</div>
-				);
-			}
-			let newFeatureLabel = null;
-			if ( this.props.newFeaturesAvailable ) {
-				newFeatureLabel = <span className="nfe-label nfe-new-features">New Features!</span>;
-				}
+var NewsFeedEradicator = React.createClass({
+  render: function() {
+  	var quoteDisplay = null;
+  	if ( this.props.quotesVisible === true ) {
+  		quoteDisplay = (
+  			<div className="feedField">
+  				<SlackFeed />
+  			</div>
+  		);
+  	}
+  	let newFeatureLabel = null;
+  	if ( this.props.newFeaturesAvailable ) {
+  		newFeatureLabel = <span className="nfe-label nfe-new-features">New Features!</span>;
+  		}
+		return (
+			<div>
+				{ this.props.infoPanelVisible && <InfoPanel /> }
+				{ quoteDisplay }
+			</div>
+		);
+	}
+});
 
-				return (
-					<div>
-						{ this.props.infoPanelVisible && <InfoPanel /> }
-						{ quoteDisplay }
-					</div>
-				);
-			}
-		} );
+const mapStateToProps = ( state ) => ( {
+	infoPanelVisible: state.showInfoPanel,
+	quotesVisible: state.showQuotes,
+	// newFeaturesAvailable: areNewFeaturesAvailable( state ),
+} );
 
-		function buildQuery (method, arg) {
-			arg = (arg) ? ('&channel=' + arg) : '';
-			var token = '?token=xoxp-23646916496-23649242352-143236957938-e948672ba71d8389d3485803d2a07a15';
-			var query = 'https://slack.com/api/';
-			query += method + token + arg + '&pretty=1';
-			console.log('query', query);
-			return encodeURI(query);
-		}
+const mapDispatchToProps = ( dispatch ) => ( {
+	showInfoPanel: () => dispatch( showInfoPanel() )
+} );
 
-		function dynamicSort(property) {
-			var sortOrder = 1;
-			if(property[0] === "-") {
-				sortOrder = -1;
-				property = property.substr(1);
-			}
-			return function (a,b) {
-				var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
-				return result * sortOrder;
-			}
-		}
-		const mapStateToProps = ( state ) => ( {
-			infoPanelVisible: state.showInfoPanel,
-			quotesVisible: state.showQuotes,
-			// newFeaturesAvailable: areNewFeaturesAvailable( state ),
-		} );
+module.exports = connect( mapStateToProps, mapDispatchToProps )( NewsFeedEradicator );
 
-		const mapDispatchToProps = ( dispatch ) => ( {
-			showInfoPanel: () => dispatch( showInfoPanel() )
-		} );
-
-		module.exports = connect( mapStateToProps, mapDispatchToProps )( NewsFeedEradicator );
+function httpGet(url, callback) {
+  const options = {
+    url :  url,
+    json : true
+  };
+  request(options,
+    function(err, res, body) {
+      console.log('request', res);
+      callback(err, body);
+    }
+  );
+}
+function buildQuery (method, arg) {
+  arg = (arg) ? ('&channel=' + arg) : '';
+  var token = '?token=xoxp-146385117830-146586426951-147257225174-cd6c345ce9d4e152a2ce002e29d54b66';
+  var query = 'https://slack.com/api/';
+  query += method + token + arg + '&pretty=1';
+  console.log('query', query);
+  return encodeURI(query);
+}
+function dynamicSort(property) {
+  var sortOrder = 1;
+  if(property[0] === "-") {
+    sortOrder = -1;
+    property = property.substr(1);
+  }
+  return function (a,b) {
+    var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+    return result * sortOrder;
+  }
+}
