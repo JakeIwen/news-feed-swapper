@@ -4,8 +4,22 @@ const moment = require('moment');
 const request = require('request');
 const Tooltip = require('rc-tooltip');
 const async = require('async');
-const reactReplace = require('react-string-replace')
+const reactReplace = require('react-string-replace');
 const QuoteDisplay = require( './quote-display.tsx' ).default;
+const browser = require( 'browser-specific' );
+
+
+// Include main chrome manifest
+require( '!file?name=manifest.json!../../browsers/chrome/manifest.json' );
+
+// Chrome requires extension icons
+require( 'file?name=icon16.jpg!../../assets/icon16.jpg' );
+require( 'file?name=icon48.jpg!../../assets/icon48.jpg' );
+require( 'file?name=icon128.jpg!../../assets/icon128.jpg' );
+
+// import thunk from 'redux-thunk';
+// import { Store as ReduxStore, createStore as createReduxStore, applyMiddleware } from 'redux';
+// import rootReducer, { IState } from '../store/reducer';
 
 import { connect } from 'react-redux';
 // import { SlackFeed } from './get-slack'
@@ -20,6 +34,12 @@ var SlackFeed = React.createClass({
   },
   componentDidMount: function() {
 		const self = this;
+
+     chrome.storage.local.get( null, function( data ) {
+       self.setState( { storage: data } );
+       console.log('STORAGE LOCAL DATA:', data);
+     });
+
     var urls = [
       buildUrl('team.info'),
       buildUrl('channels.list'),
@@ -27,8 +47,13 @@ var SlackFeed = React.createClass({
     ];
     async.map(urls, httpDo, function (err, res){
       if (err) return console.log(err);
-      console.log('res asy', res);
-      self.newChan(res[1].channels[0].id);
+      // console.log('res asy', res);
+      if (res[1].channels.map(chans => chans.id).includes(self.state.storage.lastChan)) { self.newChan(self.state.storage.lastChan);
+        console.log('true', res[1].channels.map(chans => chans.id));
+      } else {
+        self.newChan(res[1].channels[0].id);
+      }
+
       self.setState({
         teamInfo: res[0].team,
         chanList: res[1].channels,
@@ -50,14 +75,26 @@ var SlackFeed = React.createClass({
         chanId: chanId
       });
     });
+    self.saveChan({lastChan: chanId});
 	},
+  saveChan: function(channelInfo) {
+    var self = this;
+    console.log('saving channel to chrome BEFORE ', self.state.storage, channelInfo);
+    console.log('saving channel to chromeCOMVINED', Object.assign(self.state.storage, channelInfo));
+
+    self.setState( {
+      storage: Object.assign(self.state.storage, channelInfo)
+    } );
+    console.log('saving channel to chrome', self.state.storage);
+    chrome.storage.local.set(self.state.storage);
+  },
 	render: function() {
     var feed = null;
       if (this.state.chanGet && this.state.mainGet) {
         console.log('teaminfo', this.state.teamInfo);
         feed =
           <section>
-            <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} onChange={this.newChan}/>
+            <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} chanId={this.state.chanId} onChange={this.newChan}/>
             <PostMessage chanId={this.state.chanId}/>
             <MessageList userList={this.state.userList} messageList={this.state.messageList}/>
           </section>;
@@ -73,13 +110,13 @@ var SlackLogo = React.createClass({
 				<img src='https://lh3.googleusercontent.com/CzlsZP3xUHeX3HAGdZ2rL9mK6_C-6T1-YWeBeM8nB3ilmfPSBHCFx4-UbQr8MnQms3d9=w300' height='40' />
 				<span>SlackFeed</span>
 			</div>
-		)
+		);
 	}
 });
 
 var ChannelInfo = React.createClass( {
 	getInitialState: function(){
-		return { chanSelect: [] }
+		return { chanSelect: [] };
 	},
 	componentDidMount: function() {
 		const self = this;
@@ -92,7 +129,7 @@ var ChannelInfo = React.createClass( {
 		}
 		this.setState({
 			chanSelect: chanSelect,
-			selectedChan: self.props.chanList[0].id
+			selectedChan: self.props.chanId
 		});
 	},
 	newChan: function (e) {
@@ -107,16 +144,18 @@ var ChannelInfo = React.createClass( {
 	render: function() {
 		return (
 			<div className="chanInfo">
-        <div className="slackTeam">
-          <SlackLogo />
-          <h2>{'Team: ' + this.props.teamInfo.name}</h2>
-        </div>
-        <div className="chanSelect">
-  				<h2 className="channel">{'Channel: '}</h2>
-					<Select
-					  options={this.state.chanSelect}
-					  value={this.state.selectedChan}
-					  onChange={this.newChan} />
+        <SlackLogo />
+        <div className="teamChan">
+          <div className="slackTeam">
+            <h2>{'Team: ' + this.props.teamInfo.name}</h2>
+          </div>
+          <div className="chanSelect">
+    				<h2 className="channel">{'Channel: '}</h2>
+  					<Select
+  					  options={this.state.chanSelect}
+  					  value={this.state.selectedChan}
+  					  onChange={this.newChan} />
+          </div>
         </div>
 			</div>
 		);
@@ -124,19 +163,17 @@ var ChannelInfo = React.createClass( {
 });
 var PostMessage = React.createClass( {
   getInitialState: function(){
-    return { psotText: '' }
+    return { postText: '' };
   },
   postToSlack: function () {
     var self = this;
     console.log('post txt, chanid', this.state.postText, self.props.chanId);
     var url = buildUrl('chat.postMessage', self.props.chanId, self.state.postText);
-    console.log('url', url);
+    // console.log('url', url);
     httpDo(url, function (err, res) {
       if(err) console.log('post fail', err);
       console.log('post res', res);
-      self.setState({
-        postText: ''
-      });
+      self.setState( { postText: '' } );
       //append to array to show post
     });
   },
@@ -185,11 +222,11 @@ var MessageItem = React.createClass({
 
 var MessageList = React.createClass({
   getInitialState: function () {
-    return { usersById: {} }
+    return { usersById: {} };
   },
   formatDates: function () {
     var dates = this.props.messageList.map(message => moment(Math.floor(message.ts)*1000).format('MMMM Do YYYY'));
-    console.log('datesfirst', dates);
+    // console.log('datesfirst', dates);
     var lastDate = dates[0];
     for (var i = 1; i < dates.length; i++) {
       if (dates[i] != lastDate)
@@ -219,20 +256,18 @@ var MessageList = React.createClass({
     //   return ( <span className="userTag">{self.state.usersById[match.replace(/<|>|@/g, '')].name}</span> );
     // });
     text = reactReplace(text, /<(https?:\/\/\S+>)/g, function(match, i) {
-      console.log('original text', text);
+      // console.log('original text', text);
       match = match.replace(/<|>/g, '');
       if (match.match(/vimeo|youtube|youtu\.be/g))
-        return ( <iframe className="slackFrame" src={match.replace("watch?v=", "v/")} /> )
+        return ( <iframe className="slackFrame" src={match.replace("watch?v=", "v/")} /> );
       else if (match.match(/jpg|\.png|\.gif|\.bmp|\.svg/g))
-        return ( <img className="slackPic" src={match} /> )
+        return ( <img className="slackPic" src={match} /> );
     });
-    console.log('after:', text);
+    // console.log('after:', text);
     return text;
   },
 	render: function () {
-    //TODO find way to not use widely scoped dates var
     var self = this;
-    console.log('state', this.state);
 		var messages = this.props.messageList.map(function (item, index) {
       if (item.user) {
         return (
@@ -247,9 +282,8 @@ var MessageList = React.createClass({
           />
         );
       } else {
-        return (<span>unknown element</span>)
+        return (<span>unknown element</span>);
       }
-
 		});
 		return (
 				<div>{messages}</div>
@@ -321,5 +355,5 @@ function dynamicSort(property) {
   return function (a,b) {
     var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
     return result * sortOrder;
-  }
+  };
 }

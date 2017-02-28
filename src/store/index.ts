@@ -27,6 +27,7 @@ export function createStore() : Promise<Store> {
 	return new Promise( ( resolve ) => {
 		browser.loadSettings( ( initialState ) => {
 			const store = createReduxStore( rootReducer, initialState, applyMiddleware( thunk ) );
+			
 
 			store.dispatch( selectNewQuote() );
 
