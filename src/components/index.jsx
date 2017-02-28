@@ -15,17 +15,17 @@ var SlackFeed = React.createClass({
   getInitialState: function() {
     return( {
       chanGet: false,
-      mainGet: false,
+      mainGet: false
     } );
   },
   componentDidMount: function() {
 		const self = this;
     var urls = [
-      buildQuery('team.info'),
-      buildQuery('channels.list'),
-      buildQuery('users.list')
+      buildUrl('team.info'),
+      buildUrl('channels.list'),
+      buildUrl('users.list')
     ];
-    async.map(urls, httpGet, function (err, res){
+    async.map(urls, httpDo, function (err, res){
       if (err) return console.log(err);
       console.log('res asy', res);
       self.newChan(res[1].channels[0].id);
@@ -40,13 +40,14 @@ var SlackFeed = React.createClass({
 	newChan: function (chanId) {
     var self = this;
     console.log('new channel', chanId);
-    var url = buildQuery('channels.history', chanId);
-    httpGet(url, function (err, res){
+    var url = buildUrl('channels.history', chanId);
+    httpDo(url, function (err, res){
       if (err) return console.log(err);
       console.log('res data', res);
       self.setState({
         messageList: res.messages,
-        chanGet: true
+        chanGet: true,
+        chanId: chanId
       });
     });
 	},
@@ -56,8 +57,8 @@ var SlackFeed = React.createClass({
         console.log('teaminfo', this.state.teamInfo);
         feed =
           <section>
-            <SlackLogo />
             <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} onChange={this.newChan}/>
+            <PostMessage chanId={this.state.chanId}/>
             <MessageList userList={this.state.userList} messageList={this.state.messageList}/>
           </section>;
       }
@@ -76,7 +77,7 @@ var SlackLogo = React.createClass({
 	}
 });
 
-var ChannelInfo = React.createClass({
+var ChannelInfo = React.createClass( {
 	getInitialState: function(){
 		return { chanSelect: [] }
 	},
@@ -106,16 +107,57 @@ var ChannelInfo = React.createClass({
 	render: function() {
 		return (
 			<div className="chanInfo">
-				<h1>{'Team: ' + this.props.teamInfo.name}</h1>
-				<h2>{'Channel: '}</h2>
+        <div className="slackTeam">
+          <SlackLogo />
+          <h2>{'Team: ' + this.props.teamInfo.name}</h2>
+        </div>
+        <div className="chanSelect">
+  				<h2 className="channel">{'Channel: '}</h2>
 					<Select
 					  options={this.state.chanSelect}
 					  value={this.state.selectedChan}
 					  onChange={this.newChan} />
+        </div>
 			</div>
 		);
 	}
 });
+var PostMessage = React.createClass( {
+  getInitialState: function(){
+    return { psotText: '' }
+  },
+  postToSlack: function () {
+    var self = this;
+    console.log('post txt, chanid', this.state.postText, self.props.chanId);
+    var url = buildUrl('chat.postMessage', self.props.chanId, self.state.postText);
+    console.log('url', url);
+    httpDo(url, function (err, res) {
+      if(err) console.log('post fail', err);
+      console.log('post res', res);
+      self.setState({
+        postText: ''
+      });
+      //append to array to show post
+    });
+  },
+  handleChange(event) {
+    console.log('handli');
+    this.setState({postText: event.target.value});
+  },
+  render: function() {
+    return (
+      <form onSubmit={this.postToSlack}>
+        <textarea
+          type="text"
+          className="postMessage"
+          onChange={this.handleChange}
+          value={this.state.postText}
+          placeholder="Post to Slack..."/>
+        <input type="submit"/>
+      </form>
+    );
+  }
+} );
 
 var MessageItem = React.createClass({
 	render: function() {
@@ -125,7 +167,6 @@ var MessageItem = React.createClass({
 				<span>{this.props.profile.real_name}</span><br />
 				<span>{this.props.profile.email}</span><br />
 			</div>;
-
 		return (
 			<div>
 				<p className="date">{this.props.date}</p>
@@ -147,7 +188,7 @@ var MessageList = React.createClass({
     return { usersById: {} }
   },
   formatDates: function () {
-    var dates = this.props.messageList.map(message => moment(Math.floor(message.ts*1000)).format('MMMM Do YYYY'));
+    var dates = this.props.messageList.map(message => moment(Math.floor(message.ts)*1000).format('MMMM Do YYYY'));
     console.log('datesfirst', dates);
     var lastDate = dates[0];
     for (var i = 1; i < dates.length; i++) {
@@ -242,7 +283,6 @@ var NewsFeedEradicator = React.createClass({
 const mapStateToProps = ( state ) => ( {
 	infoPanelVisible: state.showInfoPanel,
 	quotesVisible: state.showQuotes,
-	// newFeaturesAvailable: areNewFeaturesAvailable( state ),
 } );
 
 const mapDispatchToProps = ( dispatch ) => ( {
@@ -251,7 +291,7 @@ const mapDispatchToProps = ( dispatch ) => ( {
 
 module.exports = connect( mapStateToProps, mapDispatchToProps )( NewsFeedEradicator );
 
-function httpGet(url, callback) {
+function httpDo(url, callback) {
   const options = {
     url :  url,
     json : true
@@ -263,11 +303,12 @@ function httpGet(url, callback) {
     }
   );
 }
-function buildQuery (method, arg) {
+function buildUrl (method, arg, text) {
   arg = (arg) ? ('&channel=' + arg) : '';
+  text = (text) ? ('&text=' + text) : '';
   var token = '?token=xoxp-146385117830-146586426951-147257225174-cd6c345ce9d4e152a2ce002e29d54b66';
   var query = 'https://slack.com/api/';
-  query += method + token + arg + '&pretty=1';
+  query += method + token + arg + text + '&pretty=1';
   console.log('query', query);
   return encodeURI(query);
 }

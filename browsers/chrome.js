@@ -1,6 +1,6 @@
 
 // Include main chrome manifest
-require( 'file?name=manifest.json!./chrome/manifest.json' );
+require( '!file?name=manifest.json!./chrome/manifest.json' );
 
 // Chrome requires extension icons
 require( 'file?name=icon16.jpg!../assets/icon16.jpg' );

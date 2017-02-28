@@ -3,6 +3,28 @@
 	position: relative;
 	font-size: 24px;
 }
+.chanInfo {
+	display: flex;
+	justify-content: start;
+	flex-direction: row;
+}
+.chanInfo div h2 {
+	font-size: 1.7em;
+}
+.slackTeam h2 {
+	padding-left: 10px;
+}
+.chanSelect {
+	flex-grow: 1;
+	padding: 10px 0 0 20px;
+}
+/*.teamChan{
+	width: 65%;
+}*/
+.postMessage {
+	margin: 15px;
+	width: 90%;
+}
 .userTag{
 	font-style: italic;
 }
@@ -18,13 +40,19 @@
 	max-height: 600px;
 }
 .logo {
-	padding: 10px;
-	text-align: center;
+	white-space: nowrap;
+	/*align-self: flex-start;*/
+	/*top: 12px;
+	right: 12px;*/
+}
+.logo > h2 {
+	padding-left: 10px;
 }
 .logo > span {
-	font-size: 2em;
+	font-size: 2.5em;
+	font-weight: bold;
 	font-stretch: expanded;
-	vertical-align: middle;
+	/*vertical-align: middle;*/
 }
 .date {
 	text-align: center;
