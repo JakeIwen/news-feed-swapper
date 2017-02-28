@@ -28,18 +28,31 @@ import 'react-select/dist/react-select.css';
 var SlackFeed = React.createClass({
   getInitialState: function() {
     return( {
+      chanId:"",
       chanGet: false,
       mainGet: false
     } );
   },
   componentDidMount: function() {
 		const self = this;
-
-     chrome.storage.local.get( null, function( data ) {
-       self.setState( { storage: data } );
-       console.log('STORAGE LOCAL DATA:', data);
-     });
-
+    self.setState({
+      chanId: ""
+    });
+    chrome.storage.local.get( null, function( data ) {
+      self.setState( data );
+      console.log('STORAGE LOCAL DATA:', data);
+      self.querySlackAPI();
+      // if (self.state.chanInfo != "") {
+      //   console.log('preState switch');
+      //   self.setState( {
+      //     mainGet: true,
+      //     chanGet: true
+      //   } );
+      // }
+    });
+  },
+  querySlackAPI: function () {
+    const self = this;
     var urls = [
       buildUrl('team.info'),
       buildUrl('channels.list'),
@@ -48,8 +61,8 @@ var SlackFeed = React.createClass({
     async.map(urls, httpDo, function (err, res){
       if (err) return console.log(err);
       // console.log('res asy', res);
-      if (res[1].channels.map(chans => chans.id).includes(self.state.storage.lastChan)) { self.newChan(self.state.storage.lastChan);
-        console.log('true', res[1].channels.map(chans => chans.id));
+      if (res[1].channels.map(chans => chans.id).includes(self.state.chanId)) { self.newChan(self.state.chanId);
+        // console.log('true', res[1].channels.map(chans => chans.id));
       } else {
         self.newChan(res[1].channels[0].id);
       }
@@ -62,8 +75,11 @@ var SlackFeed = React.createClass({
       });
     });
 	},
+  updateStorage: function (data) {
+    chrome.storage.local.set( data );
+  },
 	newChan: function (chanId) {
-    var self = this;
+    const self = this;
     console.log('new channel', chanId);
     var url = buildUrl('channels.history', chanId);
     httpDo(url, function (err, res){
@@ -74,20 +90,15 @@ var SlackFeed = React.createClass({
         chanGet: true,
         chanId: chanId
       });
+      self.updateStorage(self.state);
     });
-    self.saveChan({lastChan: chanId});
+    // self.saveChan(chanId);
 	},
-  saveChan: function(channelInfo) {
-    var self = this;
-    console.log('saving channel to chrome BEFORE ', self.state.storage, channelInfo);
-    console.log('saving channel to chromeCOMVINED', Object.assign(self.state.storage, channelInfo));
-
-    self.setState( {
-      storage: Object.assign(self.state.storage, channelInfo)
-    } );
-    console.log('saving channel to chrome', self.state.storage);
-    chrome.storage.local.set(self.state.storage);
-  },
+  // saveChan: function(chanId) {
+  //   const self = this;
+  //   console.log('saving channel to chrome BEFORE ', self.state.chanId, chanId);
+  //   chrome.storage.local.set(self.state);
+  // },
 	render: function() {
     var feed = null;
       if (this.state.chanGet && this.state.mainGet) {
@@ -166,7 +177,7 @@ var PostMessage = React.createClass( {
     return { postText: '' };
   },
   postToSlack: function () {
-    var self = this;
+    const self = this;
     console.log('post txt, chanid', this.state.postText, self.props.chanId);
     var url = buildUrl('chat.postMessage', self.props.chanId, self.state.postText);
     // console.log('url', url);
@@ -250,7 +261,7 @@ var MessageList = React.createClass({
     } );
 	},
   replaceTextElements: function(text) {
-    var self = this;
+    const self = this;
     // text = reactReplace(text, /<@([A-Z]|\d)+>/g, function(match, i) {
     //   console.log('match2', match);
     //   return ( <span className="userTag">{self.state.usersById[match.replace(/<|>|@/g, '')].name}</span> );
@@ -267,7 +278,7 @@ var MessageList = React.createClass({
     return text;
   },
 	render: function () {
-    var self = this;
+    const self = this;
 		var messages = this.props.messageList.map(function (item, index) {
       if (item.user) {
         return (
@@ -282,7 +293,7 @@ var MessageList = React.createClass({
           />
         );
       } else {
-        return (<span>unknown element</span>);
+        return (<span key={index}>unknown element</span>);
       }
 		});
 		return (
