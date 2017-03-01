@@ -4,6 +4,7 @@
 .idea/*
 .vscode
 local/*
+test-key
 
 dump.rdb
 
