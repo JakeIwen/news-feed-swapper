@@ -8,6 +8,7 @@ const MessageList = require('./message-list');
 const PostMessage = require('./post-message');
 const ChannelInfo = require('./channel-info');
 var token = require('../test-token');
+token = '?token=' + token;
 
 // Include main chrome manifest
 require( '!file?name=manifest.json!../../browsers/chrome/manifest.json' );
@@ -172,7 +173,6 @@ function httpDo(url, callback) {
 function buildUrl (method, arg, text) {
   arg = (arg) ? ('&channel=' + arg) : '';
   text = (text) ? ('&text=' + text) : '';
-  token = '?token' + token;
   var query = 'https://slack.com/api/';
   query += method + token + arg + text + '&pretty=1';
   return encodeURI(query);

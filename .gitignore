@@ -14,4 +14,4 @@ browsers/firefox/news-feed-eradicator.xpi
 dist
 build
 typings
-test-token
+./src/test-token
