@@ -39,8 +39,8 @@ var MessageList = React.createClass( {
       match.replace(/<|>/g, ""))
     .replace(/@([A-Z]|\d){8}/g, match =>
       console.log(match.replace("@", "").substring(0, match.length - 1)));
-    console.log('usres', self.state.usersById);
-    console.log('text', [text]);
+    // console.log('usres', self.state.usersById);
+    // console.log('text', [text]);
     // text = reactReplace(text, url, match => createMedia(match, ts));
     // console.log('text2', [text]);
 

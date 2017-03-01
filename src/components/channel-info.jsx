@@ -31,13 +31,12 @@ var ChannelInfo = React.createClass( {
 		}
 	},
 	render: function() {
-    var teamName = this.props.teamInfo ? this.props.teamInfo.name : "unknown";
 		return (
 			<div className="chanInfo">
         <SlackLogo />
         <div className="teamChan">
           <div className="slackTeam">
-            <h2>{'Team: ' + teamName}</h2>
+            <h2>{'Team: ' + this.props.teamInfo.name}</h2>
           </div>
           <div className="chanSelect">
     				<h2 className="channel">{'Channel: '}</h2>

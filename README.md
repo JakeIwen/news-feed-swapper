@@ -1,8 +1,9 @@
 
 
-CHrome browser extension to replace Facebook newsfeed with SLACK API.
+Chrome browser extension to replace Facebook newsfeed with Slack API.
 
 Project based on NewsFeed Eradicator
+
 news-feed-eradicator.west.io
 
 ![Screenshot](https://github.com/JakeIwen/news-feed-swapper/blob/master/assets/NFSwapper_1.png)

@@ -4,20 +4,11 @@ const request = require('request');
 const async = require('async');
 const reactReplace = require('react-string-replace');
 
-const QuoteDisplay = require( './quote-display.tsx' ).default;
 const MessageList = require('./message-list');
 const PostMessage = require('./post-message');
 const ChannelInfo = require('./channel-info');
 var token = require('../key2');
 token = '?token=' + token;
-
-// Include main chrome manifest
-require( '!file?name=manifest.json!../../browsers/chrome/manifest.json' );
-
-// Chrome requires extension icons
-require( 'file?name=icon16.jpg!../../assets/icon16.jpg' );
-require( 'file?name=icon48.jpg!../../assets/icon48.jpg' );
-require( 'file?name=icon128.jpg!../../assets/icon128.jpg' );
 
 import { connect } from 'react-redux';
 import 'react-select/dist/react-select.css';
@@ -37,7 +28,8 @@ var SlackFeed = React.createClass( {
     });
     self.querySlackAPI();
     chrome.storage.local.get( null, function( data ) {
-      console.log('data', data);
+      data.mainGet = false;
+      data.chanGet = false;
       self.setState( data );
       console.log('STORAGE LOCAL DATA:', data);
       self.querySlackAPI();
@@ -57,32 +49,27 @@ var SlackFeed = React.createClass( {
       buildUrl('channels.list'),
       buildUrl('users.list')
     ];
-    async.map(urls, httpDo, function (err, res){
+    async.map(urls, httpDo, function (err, res) {
       if (err) return console.log(err);
-      // make sure channel from stora
-      // if (res[1].channels.map(chans => chans.id).includes(self.state.chanId)) { self.newChan(self.state.chanId);
-      // } else {
-        self.newChan(self.state.chanId || res[1].channels[0].id);
-      // }
+      // get/reload channel
+      self.newChan(res[1].channels[0].id);
       console.log('async res', res);
-      self.setState({
+      self.setState( {
         teamInfo: res[0].team,
         chanList: res[1].channels,
         userList: res[2].members,
         mainGet: true
-      });
+      } );
     });
 	},
   updateStorage: function (data) {
-    data.chanId = false;
-    data.chanGet = false;
     chrome.storage.local.set( data );
     console.log('storage updated', data);
   },
 	newChan: function (chanId) {
     const self = this;
     var url = buildUrl('channels.history', chanId);
-    httpDo(url, function (err, res){
+    httpDo(url, function (err, res) {
       if (err) return console.log(err);
       self.setState({
         messageList: res.messages,
@@ -93,55 +80,31 @@ var SlackFeed = React.createClass( {
     });
 	},
 	render: function() {
-    var feed = null;
-      if (this.state.chanGet && this.state.mainGet) {
-        console.log('teaminfo', this.state.teamInfo);
-        feed =
-          <section>
-            <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} chanId={this.state.chanId} onChange={this.newChan}/>
-            <PostMessage chanId={this.state.chanId}/>
-            <MessageList userList={this.state.userList} messageList={this.state.messageList}/>
-          </section>;
-      }
-    return ( <div>{feed}</div> );
+    if (this.state.chanGet && this.state.mainGet) {
+      return (
+        <section>
+          <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} chanId={this.state.chanId} onChange={this.newChan}/>
+          <PostMessage chanId={this.state.chanId}/>
+          <MessageList userList={this.state.userList} messageList={this.state.messageList}/>
+        </section> );
+    } else {
+      return null;
+    }
   }
 });
 
 
-var NewsFeedEradicator = React.createClass({
+var NewsFeedSwapper = React.createClass({
   render: function() {
-  	var quoteDisplay = null;
-  	if ( this.props.quotesVisible === true ) {
-  		quoteDisplay = (
-  			<div className="feedField">
-  				<SlackFeed />
-  			</div>
-  		);
-  	}
-  	let newFeatureLabel = null;
-  	if ( this.props.newFeaturesAvailable ) {
-  		newFeatureLabel = <span className="nfe-label nfe-new-features">New Features!</span>;
-  		}
 		return (
-			<div>
-				{ this.props.infoPanelVisible && <InfoPanel /> }
-				{ quoteDisplay }
+			<div className="feedField">
+				<SlackFeed />
 			</div>
 		);
 	}
 });
 
-const mapStateToProps = ( state ) => ( {
-	infoPanelVisible: state.showInfoPanel,
-	quotesVisible: state.showQuotes,
-} );
-
-const mapDispatchToProps = ( dispatch ) => ( {
-	showInfoPanel: () => dispatch( showInfoPanel() )
-} );
-
 function createMedia (urls, ts) {
-  console.log('urls', urls);
   console.log('createmedia', urls);
   var ret;
   if (urls.match(/vimeo|youtube|youtu\.be/g))
@@ -185,4 +148,4 @@ function dynamicSort(property) {
   };
 }
 
-module.exports = connect( mapStateToProps, mapDispatchToProps )( NewsFeedEradicator );
+module.exports = NewsFeedSwapper;
