@@ -22,7 +22,19 @@ var MessageList = React.createClass( {
   },
 	componentWillMount: function() {
 		const self = this;
+
+    var obj = {};
+
+    for (var i = 0; i < list.length; i++) {
+      var user = list[i];
+      
+      obj[user.id] = user;
+    }
+
 		var usersById = {};
+
+
+
 		for (var i = 0; i < self.props.userList.length; i++)
 			usersById[self.props.userList[i].id] = self.props.userList[i];
     for (var i = 0; i < self.props.messageList.length; i++)

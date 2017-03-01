@@ -7,43 +7,44 @@ const reactReplace = require('react-string-replace');
 const MessageList = require('./message-list');
 const PostMessage = require('./post-message');
 const ChannelInfo = require('./channel-info');
-var token = require('../key2');
-token = '?token=' + token;
+// var token = require('../key2');
+// token = '?token=' + token;
 
 import { connect } from 'react-redux';
 import 'react-select/dist/react-select.css';
 
 var SlackFeed = React.createClass( {
   getInitialState: function() {
+    console.log('initila');
+    console.log('browserURL', window.location);
     return( {
-      chanId:"",
+      chanId: "",
       chanGet: false,
-      mainGet: false
+      mainGet: false,
+      token: false
     } );
   },
   componentDidMount: function() {
 		const self = this;
-    self.setState({
-      chanId: ""
-    });
     self.querySlackAPI();
     chrome.storage.local.get( null, function( data ) {
       data.mainGet = false;
       data.chanGet = false;
       self.setState( data );
       console.log('STORAGE LOCAL DATA:', data);
-      self.querySlackAPI();
-      if (self.state.chanInfo != "") {
-        console.log('preState switch');
-        self.setState( {
-          mainGet: true,
-          chanGet: true
-        } );
-      }
+      if (self.state.token) { self.querySlackAPI(); }
     });
   },
   querySlackAPI: function () {
-    const self = this;
+  const self = this;
+    //render before slap API call completes if sufficient data was pulled from storage
+    if (self.state.chanId != "") {
+      console.log('preState switch');
+      self.setState( {
+        mainGet: true,
+        chanGet: true
+      } );
+    }
     var urls = [
       buildUrl('team.info'),
       buildUrl('channels.list'),
@@ -80,7 +81,10 @@ var SlackFeed = React.createClass( {
     });
 	},
 	render: function() {
-    if (this.state.chanGet && this.state.mainGet) {
+    if(!this.state.token) {
+      //slack sign-in button
+      return (<a href="https://slack.com/oauth/authorize?scope=identity.basic&client_id=148278991843.147671805249"><img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>)
+    } else if (this.state.chanGet && this.state.mainGet) {
       return (
         <section>
           <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} chanId={this.state.chanId} onChange={this.newChan}/>
@@ -124,7 +128,6 @@ function httpDo(url, callback) {
   };
   request(options,
     function(err, res, body) {
-      console.log('request', res);
       callback(err, body);
     }
   );
@@ -133,7 +136,7 @@ function buildUrl (method, arg, text) {
   arg = (arg) ? ('&channel=' + arg) : '';
   text = (text) ? ('&text=' + text) : '';
   var query = 'https://slack.com/api/';
-  query += method + token + arg + text + '&pretty=1';
+  query += method + this.state.token + arg + text + '&pretty=1';
   return encodeURI(query);
 }
 function dynamicSort(property) {
