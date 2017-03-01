@@ -3,6 +3,7 @@ const moment = require('moment');
 const request = require('request');
 const async = require('async');
 const reactReplace = require('react-string-replace');
+
 const QuoteDisplay = require( './quote-display.tsx' ).default;
 const MessageList = require('./message-list');
 const PostMessage = require('./post-message');
@@ -18,12 +19,7 @@ require( 'file?name=icon16.jpg!../../assets/icon16.jpg' );
 require( 'file?name=icon48.jpg!../../assets/icon48.jpg' );
 require( 'file?name=icon128.jpg!../../assets/icon128.jpg' );
 
-// import thunk from 'redux-thunk';
-// import { Store as ReduxStore, createStore as createReduxStore, applyMiddleware } from 'redux';
-// import rootReducer, { IState } from '../store/reducer';
-
 import { connect } from 'react-redux';
-// import { SlackFeed } from './get-slack'
 import 'react-select/dist/react-select.css';
 
 var SlackFeed = React.createClass( {
@@ -40,19 +36,19 @@ var SlackFeed = React.createClass( {
       chanId: ""
     });
     self.querySlackAPI();
-    // chrome.storage.local.get( null, function( data ) {
-    //   console.log('data', data);
-    //   self.setState( data );
-    //   console.log('STORAGE LOCAL DATA:', data);
-    //   self.querySlackAPI();
-    //   if (self.state.chanInfo != "") {
-    //     console.log('preState switch');
-    //     self.setState( {
-    //       mainGet: true,
-    //       chanGet: true
-    //     } );
-    //   }
-    // });
+    chrome.storage.local.get( null, function( data ) {
+      console.log('data', data);
+      self.setState( data );
+      console.log('STORAGE LOCAL DATA:', data);
+      self.querySlackAPI();
+      if (self.state.chanInfo != "") {
+        console.log('preState switch');
+        self.setState( {
+          mainGet: true,
+          chanGet: true
+        } );
+      }
+    });
   },
   querySlackAPI: function () {
     const self = this;
