@@ -4,7 +4,7 @@
 .idea/*
 .vscode
 local/*
-src/components/test-key
+src/test-key
 
 dump.rdb
 
