@@ -7,7 +7,7 @@ const QuoteDisplay = require( './quote-display.tsx' ).default;
 const MessageList = require('./message-list');
 const PostMessage = require('./post-message');
 const ChannelInfo = require('./channel-info');
-var token = require('../test-token');
+var token = require('../key2');
 token = '?token=' + token;
 
 // Include main chrome manifest

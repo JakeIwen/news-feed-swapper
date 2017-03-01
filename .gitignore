@@ -4,13 +4,10 @@
 .idea/*
 .vscode
 local/*
-src/test-key
-src/components/quote.ts
 dump.rdb
 node_modules
 browsers/firefox/news-feed-eradicator.xpi
 dist
 build
 typings
-./src/test-token
 key2
