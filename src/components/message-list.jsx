@@ -22,19 +22,8 @@ var MessageList = React.createClass( {
   },
 	componentWillMount: function() {
 		const self = this;
-
-    var obj = {};
-
-    for (var i = 0; i < list.length; i++) {
-      var user = list[i];
-      
-      obj[user.id] = user;
-    }
-
 		var usersById = {};
-
-
-
+    //create hash
 		for (var i = 0; i < self.props.userList.length; i++)
 			usersById[self.props.userList[i].id] = self.props.userList[i];
     for (var i = 0; i < self.props.messageList.length; i++)
@@ -47,7 +36,9 @@ var MessageList = React.createClass( {
   replaceTextElements: function(text, ts) {
     const self = this;
     const url =  /^(?:(?:ht|f)tp(?:s?)\:\/\/|~\/|\/)?(?:\w+:\w+@)?((?:(?:[-\w\d{1-3}]+\.)+(?:com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|edu|co\.uk|ac\.uk|it|fr|tv|museum|asia|local|travel|[a-z]{2}))|((\b25[0-5]\b|\b[2][0-4][0-9]\b|\b[0-1]?[0-9]?[0-9]\b)(\.(\b25[0-5]\b|\b[2][0-4][0-9]\b|\b[0-1]?[0-9]?[0-9]\b)){3}))(?::[\d]{1,5})?(?:(?:(?:\/(?:[-\w~!$+|.,=]|%[a-f\d]{2})+)+|\/)+|\?|#)?(?:(?:\?(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=?(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)(?:&(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=?(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)*)*(?:#(?:[-\w~!$ |\/.,*:;=]|%[a-f\d]{2})*)?$/i;
-    text = text.replace(/<.+>/g, match =>
+  
+    text = text.replace(/(@.........\|)/g, '')
+    .replace(/<.+>/g, match =>
       match.replace(/<|>/g, ""))
     .replace(/@([A-Z]|\d){8}/g, match =>
       console.log(match.replace("@", "").substring(0, match.length - 1)));
@@ -70,7 +61,7 @@ var MessageList = React.createClass( {
             index={index}
             ts={item.ts}
             user={self.state.usersById[item.user].name}
-            text={self.replaceTextElements(item.text.replace(/(@.........\|)/g, ''), item.ts)}
+            text={self.replaceTextElements(item.text, item.ts)}
             profile={self.state.usersById[item.user].profile}
           />
         );

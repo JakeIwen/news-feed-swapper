@@ -11,3 +11,4 @@ dist
 build
 typings
 key2.js
+secret.js

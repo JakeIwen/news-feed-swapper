@@ -83,7 +83,7 @@ var SlackFeed = React.createClass( {
 	render: function() {
     if(!this.state.token) {
       //slack sign-in button
-      return (<a href="https://slack.com/oauth/authorize?scope=identity.basic&client_id=148278991843.147671805249"><img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>)
+      return (<a href="https://slack.com/oauth/authorize?scope=identity.basic&client_id=148278991843.147671805249"><img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>);
     } else if (this.state.chanGet && this.state.mainGet) {
       return (
         <section>
