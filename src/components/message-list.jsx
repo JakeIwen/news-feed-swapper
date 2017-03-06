@@ -8,7 +8,7 @@ var MessageList = React.createClass( {
     return { usersById: {} };
   },
   formatDates: function () {
-    var dates = this.props.messageList.map(message => moment(Math.floor(message.ts)*1000).format('MMMM Do YYYY'));
+    var dates = this.props.messageList.map(message => moment(message.ts*1000).format('MMMM Do YYYY'));
     // console.log('datesfirst', dates);
     var lastDate = dates[0];
     for (var i = 1; i < dates.length; i++) {
@@ -36,29 +36,24 @@ var MessageList = React.createClass( {
 	},
   replaceTextElements: function(text, ts) {
     const self = this;
-    const url =  /^(?:(?:ht|f)tp(?:s?)\:\/\/|~\/|\/)?(?:\w+:\w+@)?((?:(?:[-\w\d{1-3}]+\.)+(?:com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|edu|co\.uk|ac\.uk|it|fr|tv|museum|asia|local|travel|[a-z]{2}))|((\b25[0-5]\b|\b[2][0-4][0-9]\b|\b[0-1]?[0-9]?[0-9]\b)(\.(\b25[0-5]\b|\b[2][0-4][0-9]\b|\b[0-1]?[0-9]?[0-9]\b)){3}))(?::[\d]{1,5})?(?:(?:(?:\/(?:[-\w~!$+|.,=]|%[a-f\d]{2})+)+|\/)+|\?|#)?(?:(?:\?(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=?(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)(?:&(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=?(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)*)*(?:#(?:[-\w~!$ |\/.,*:;=]|%[a-f\d]{2})*)?$/i;
-
+    const url = /([^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi;
     text = text.replace(/(@.........\|)/g , '')
     .replace(/<.+>/g, match =>
       match.replace(/<|>/g, ""))
     .replace(/@([A-Z]|\d){8}/g, match =>
       console.log(match.replace("@", "").substring(0, match.length - 1)));
-    // console.log('usres', self.state.usersById);
-    // console.log('text', [text]);
-    // text = reactReplace(text, url, match => createMedia(match, ts));
-    // console.log('text2', [text]);
-
+    console.log('text', [text]);
+    text = reactReplace(text,  url, (match, i) => createMedia(match, ts));
     return text;
     },
 	render: function () {
     const self = this;
-
-  var messages = this.props.messageList.map(function (item, index) {
+    var messages = this.props.messageList.map(function (item, index) {
       if (item.user) {
         return (
           <MessageItem
             className="messageItem"
-            date={self.state.dates[index+1]}
+            date={self.state.dates[index]}
             key={index}
             index={index}
             ts={item.ts}
@@ -77,4 +72,16 @@ var MessageList = React.createClass( {
 	}
 });
 
+function createMedia (match, ts) {
+  console.log('createmedia', match);
+  var ret;
+  if (match.match(/vimeo|youtube|youtu\.be/g))
+    ret =  <iframe key={ts} className="slackFrame" src={match.replace("watch?v=", "/embed/")} />;
+  else if (match.match(/\.jpg|\.png|\.gif|\.bmp|\.svg/g))
+    ret =  <img key={ts} className="slackPic" src={match} />;
+  else
+    ret = <a href={match} key={ts}>{match}</a>;
+  console.log("ret", ret);
+  return ret;
+}
 module.exports = MessageList;

@@ -44,10 +44,6 @@ var SlackFeed = React.createClass( {
       httpDo(oauth, function (err, res) {
         if (err) return console.log('oauth query error', err);
         console.log('oauth res', res);
-        // self.setState( {
-        //   token: res.access_token,
-        //   user_name: res.user_name
-        // } );
         self.querySlackAPI(res.access_token);
       });
     }
@@ -143,19 +139,6 @@ var NewsFeedSwapper = React.createClass({
 		);
 	}
 });
-
-function createMedia (urls, ts) {
-  console.log('createmedia', urls);
-  var ret;
-  if (urls.match(/vimeo|youtube|youtu\.be/g))
-    ret = ( <iframe key={ts} className="slackFrame" src={urls.replace("watch?v=", "v/")} /> );
-  else if (urls.match(/\.jpg|\.png|\.gif|\.bmp|\.svg/g))
-    ret = ( <img key={ts} className="slackPic" src={urls} /> );
-  else
-    ret = (<a href={urls} key={ts}>{urls}</a>);
-  console.log("ret", ret);
-  return ret;
-}
 
 function httpDo(url, callback) {
   const options = {
