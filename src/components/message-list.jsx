@@ -24,6 +24,7 @@ var MessageList = React.createClass( {
 		const self = this;
 		var usersById = {};
     //create hash
+    console.log('msgList props', self.props);
 		for (var i = 0; i < self.props.userList.length; i++)
 			usersById[self.props.userList[i].id] = self.props.userList[i];
     for (var i = 0; i < self.props.messageList.length; i++)
@@ -36,8 +37,8 @@ var MessageList = React.createClass( {
   replaceTextElements: function(text, ts) {
     const self = this;
     const url =  /^(?:(?:ht|f)tp(?:s?)\:\/\/|~\/|\/)?(?:\w+:\w+@)?((?:(?:[-\w\d{1-3}]+\.)+(?:com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|edu|co\.uk|ac\.uk|it|fr|tv|museum|asia|local|travel|[a-z]{2}))|((\b25[0-5]\b|\b[2][0-4][0-9]\b|\b[0-1]?[0-9]?[0-9]\b)(\.(\b25[0-5]\b|\b[2][0-4][0-9]\b|\b[0-1]?[0-9]?[0-9]\b)){3}))(?::[\d]{1,5})?(?:(?:(?:\/(?:[-\w~!$+|.,=]|%[a-f\d]{2})+)+|\/)+|\?|#)?(?:(?:\?(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=?(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)(?:&(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=?(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)*)*(?:#(?:[-\w~!$ |\/.,*:;=]|%[a-f\d]{2})*)?$/i;
-  
-    text = text.replace(/(@.........\|)/g, '')
+
+    text = text.replace(/(@.........\|)/g , '')
     .replace(/<.+>/g, match =>
       match.replace(/<|>/g, ""))
     .replace(/@([A-Z]|\d){8}/g, match =>
@@ -51,12 +52,13 @@ var MessageList = React.createClass( {
     },
 	render: function () {
     const self = this;
-		var messages = this.props.messageList.map(function (item, index) {
+
+  var messages = this.props.messageList.map(function (item, index) {
       if (item.user) {
         return (
           <MessageItem
             className="messageItem"
-            date={self.state.dates[index]}
+            date={self.state.dates[index+1]}
             key={index}
             index={index}
             ts={item.ts}

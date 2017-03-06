@@ -3,7 +3,7 @@
  * infinite scroll algorithm triggering.
  */
 
-// import isEnabled from './is-enabled';
+import isEnabled from './is-enabled';
 
 // Check if the event target is a chat conversation
 let isConversation = ( target ) => {
@@ -21,11 +21,11 @@ let isConversation = ( target ) => {
 
 	return isConversation( target.parentElement );
 }
-
+	
 const maybeBlock = ( event: MouseWheelEvent ) => {
-	// if ( ! isEnabled() ) {
-	// 	return false;
-	// }
+	if ( ! isEnabled() ) {
+		return false;
+	}
 
 	// Allow infinite scrolling of chats on the home page
 	if ( isConversation( event.target ) ) {
