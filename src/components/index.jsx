@@ -7,6 +7,7 @@ const reactReplace = require('react-string-replace');
 const MessageList = require('./message-list');
 const PostMessage = require('./postMessage');
 const ChannelInfo = require('./channel-info');
+const ChatInfo = require('./chat-info');
 
 const client_secret = require('../secret');
 const client_id = "148278991843.147671805249";
@@ -20,7 +21,7 @@ var SlackFeed = React.createClass( {
     console.log('initila');
     return( {
       chanId: "",
-      chanGet: false,
+      msgGet: false,
       mainGet: false,
       token: false
     } );
@@ -30,7 +31,7 @@ var SlackFeed = React.createClass( {
 
     chrome.storage.local.get( null, function( data ) {
       data.mainGet = false;
-      data.chanGet = false;
+      data.msgGet = false;
       self.setState( data );
       console.log('STORAGE LOCAL DATA:', data);
       if (self.state.token) { self.querySlackAPI(self.state.token); }
@@ -61,7 +62,7 @@ var SlackFeed = React.createClass( {
       console.log('preState switch');
       self.setState( {
         mainGet: true,
-        chanGet: true
+        msgGet: true
       } );
     } else {
       self.setState( {
@@ -71,7 +72,8 @@ var SlackFeed = React.createClass( {
     var urls = [
       buildUrl(token, 'team.info'),
       buildUrl(token, 'channels.list'),
-      buildUrl(token, 'users.list')
+      buildUrl(token, 'users.list'),
+      buildUrl(token, 'groups.list')
     ];
     async.map(urls, httpDo, function (err, res) {
       if (err) return console.log(err);
@@ -82,6 +84,7 @@ var SlackFeed = React.createClass( {
         teamInfo: res[0].team,
         chanList: res[1].channels,
         userList: res[2].members,
+        chatList: res[3].groups,
         mainGet: true
       } );
       self.updateStorage(self.state);
@@ -91,34 +94,50 @@ var SlackFeed = React.createClass( {
     chrome.storage.local.set( data );
     console.log('storage updated', data);
   },
-	newChan: function (chanId) {
+  newChan: function (chanId) {
     const self = this;
     var url = buildUrl(self.state.token, 'channels.history', chanId);
     httpDo(url, function (err, res) {
       if (err) return console.log(err);
       self.setState({
         messageList: res.messages,
-        chanGet: true,
+        msgGet: true,
+        chanId: chanId
+      });
+      self.updateStorage(self.state);
+    });
+	},
+  newChat: function (chatId) {
+    const self = this;
+    var url = buildUrl(self.state.token, 'groups.history', chatId);
+    httpDo(url, function (err, res) {
+      if (err) return console.log(err);
+      self.setState({
+        messageList: res.messages,
+        msgGet: true,
         chanId: chanId
       });
       self.updateStorage(self.state);
     });
 	},
 	render: function() {
+    const self = this;
     var newTeam = <button onClick={this.resetStore}>New Team</button>;
+    var channel = <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} chanId={this.state.chanId} onChange={this.newChan} />;
+    var chat = <ChatInfo teamInfo={this.state.teamInfo} chanList={this.state.chatList} chatId={this.state.chatId} onChange={this.newChat}/>;
+
     if(!this.state.token) {
       return(
         <div>
           <a href="https://slack.com/oauth/authorize?scope=chat:write:user+channels:history+team:read+users:read+channels:read&client_id=148278991843.147671805249">
             <img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>
           {newTeam}
-        </div>
-  );
-    } else if (this.state.chanGet && this.state.mainGet) {
+        </div> );
+    } else if (this.state.msgGet && this.state.mainGet) {
       return (
         <section>
           {newTeam}
-          <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} chanId={this.state.chanId} onChange={this.newChan} />
+          {channnel}//maker ternary
           <PostMessage token={this.state.token} chanId={this.state.chanId} />
           <MessageList userList={this.state.userList} messageList={this.state.messageList} />
         </section> );
