@@ -2,27 +2,29 @@ const React = require('react');
 const Select = require('react-select');
 const SlackLogo = require('./slack-logo');
 
-var ChatInfo = React.createClass( {
+var ChannelInfo = React.createClass( {
 	getInitialState: function(){
-		return { chatSelect: [] };
+		return { chanSelect: [] };
 	},
 	componentDidMount: function() {
 		const self = this;
-    console.log('teaminfochat', this.props.teamInfo);
-		var chatSelect = [];
-		for (var i = 0; i < this.props.chatList.length; i++) {
-			chatSelect.push( {
-				value: this.props.chatList[i].id,
-				label: this.props.chatList[i].name
+    console.log('teaminfochan', this.props.teamInfo);
+		console.log('imList', this.props.imList);
+		var chanSelect = [];
+		for (var i = 0; i < this.props.imList.length; i++) {
+			chanSelect.push( {
+				label: this.props.usersById[this.props.imList[i].user].name,
+				value: this.props.imList[i].id
 			} );
 		}
+		console.log('chanSelect,', chanSelect);
 		this.setState({
-			chatSelect: chatSelect,
-			selectedChan: self.props.chatId
+			chanSelect: chanSelect,
+			selectedChan: self.props.chanId
 		});
 	},
 	newChan: function (e) {
-		console.log('chatged to', e);
+		console.log('changed to', e);
 		if (typeof this.props.onChange === 'function' && e) {
 			this.props.onChange(e.value);
       this.setState({
@@ -32,16 +34,16 @@ var ChatInfo = React.createClass( {
 	},
 	render: function() {
 		return (
-			<div className="chatInfo">
+			<div className="chanInfo">
         <SlackLogo />
         <div className="teamChan">
           <div className="slackTeam">
             <h2>{'Team: ' + this.props.teamInfo.name}</h2>
           </div>
-          <div className="chatSelect">
-    				<h2 className="chat">{'Chat: '}</h2>
+          <div className="chanSelect">
+    				<h2 className="channel">{'Channel: '}</h2>
   					<Select
-  					  options={this.state.chatSelect}
+  					  options={this.state.chanSelect}
   					  value={this.state.selectedChan}
   					  onChange={this.newChan} />
           </div>
@@ -51,4 +53,4 @@ var ChatInfo = React.createClass( {
 	}
 });
 
-module.exports = ChatInfo;
+module.exports = ChannelInfo;

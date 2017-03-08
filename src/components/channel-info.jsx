@@ -4,30 +4,40 @@ const SlackLogo = require('./slack-logo');
 
 var ChannelInfo = React.createClass( {
 	getInitialState: function(){
-		return { chanSelect: [] };
+		return { viewId: this.props.viewId };
 	},
 	componentDidMount: function() {
 		const self = this;
     console.log('teaminfochan', this.props.teamInfo);
+		console.log('imList', this.props.imList);
 		var chanSelect = [];
+		var imSelect = [];
 		for (var i = 0; i < this.props.chanList.length; i++) {
 			chanSelect.push( {
 				value: this.props.chanList[i].id,
-				label: this.props.chanList[i].name
+				label: this.props.chanList[i].name,
+				apiMethod: "channels.history"
 			} );
 		}
+		for (var i = 0; i < this.props.imList.length; i++) {
+			imSelect.push( {
+				label: this.props.usersById[this.props.imList[i].user].name,
+				value: this.props.imList[i].id,
+				apiMethod: "im.history"
+			} );
+		}
+		console.log('chanSelect, imSelect,', chanSelect, imSelect);
 		this.setState({
 			chanSelect: chanSelect,
-			selectedChan: self.props.chanId
+			imSelect: imSelect,
+			view: self.props.viewId
 		});
 	},
-	newChan: function (e) {
+	newView: function (e) {
 		console.log('changed to', e);
 		if (typeof this.props.onChange === 'function' && e) {
-			this.props.onChange(e.value);
-      this.setState({
-        selectedChan: e.value
-      });
+			this.props.onChange(e);
+      this.setState( { viewId: e.value} );
 		}
 	},
 	render: function() {
@@ -42,8 +52,15 @@ var ChannelInfo = React.createClass( {
     				<h2 className="channel">{'Channel: '}</h2>
   					<Select
   					  options={this.state.chanSelect}
-  					  value={this.state.selectedChan}
-  					  onChange={this.newChan} />
+  					  value={this.state.viewId}
+  					  onChange={this.newView} />
+          </div>
+					<div className="chanSelect">
+    				<h2 className="channel">{'Direct Message: '}</h2>
+  					<Select
+  					  options={this.state.imSelect}
+  					  value={this.state.viewId}
+  					  onChange={this.newView} />
           </div>
         </div>
 			</div>

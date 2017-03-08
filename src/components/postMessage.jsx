@@ -7,28 +7,29 @@ var PostMessage = React.createClass( {
     return { postText: '' };
   },
   postToSlack: function () {
+    console.log('post props', this.props);
     const self = this;
-    console.log('post txt, chanid', this.state.postText, self.props.chanId);
-    var postUrl = buildUrl(self.props.token, 'chat.postMessage', self.props.chanId, self.state.postText);
+    console.log('post txt, chanid', this.state.postText, self.props.viewId);
+    var postUrl = buildUrl(self.props.token, 'chat.postMessage', self.props.viewId, self.state.postText);
     // console.log('url', url);
     httpDo(postUrl, function (err, res) {
       if(err) console.log('post fail', err);
       console.log('post res', res);
       self.setState( { postText: '' } );
-      //append to array to show post
     });
   },
-  // handleChange(event) {
-  //   console.log('handle change', event.target.value);
-  //   this.setState({postText: event.target.value});
-  // },
+  handleChange: function(event) {
+    this.setState({postText: event.target.value});
+  },
   render: function() {
     return (
       <form onSubmit={this.postToSlack}>
         <textarea
           type="text"
           className="postMessage"
-          placeholder="Post to Slack..."/>
+          value={this.state.postText}
+          placeholder="Post to Slack..."
+          onChange={this.handleChange} />
         <input type="submit"/>
       </form>
     );
