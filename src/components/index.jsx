@@ -38,7 +38,6 @@ var SlackFeed = React.createClass( {
     } );
 
     function getToken () {
-      console.log('gettingtoken with code ', window.location.search.substring(6, 42));
       oauth = "https://slack.com/api/oauth.access?client_id=" + client_id + "&client_secret=" + client_secret + "&code=" + window.location.search.substring(6, 42) + "&pretty=1";
       console.log('oauth', oauth);
       httpDo(oauth, function (err, res) {
@@ -52,6 +51,7 @@ var SlackFeed = React.createClass( {
   resetStore: function () {
     chrome.storage.local.clear();
     this.state = null;
+    console.log(this.state);
   },
   querySlackAPI: function (token) {
     const self = this;
@@ -73,12 +73,11 @@ var SlackFeed = React.createClass( {
       buildUrl(token, 'channels.list'),
       buildUrl(token, 'users.list')
     ];
-    console.log('urls', urls);
     async.map(urls, httpDo, function (err, res) {
       if (err) return console.log(err);
       // get/reload channel
       console.log('async res', res);
-      self.newChan(res[1].channels[0].id);
+      self.newChan(self.state.chanId || res[1].channels[0].id);
       self.setState( {
         teamInfo: res[0].team,
         chanList: res[1].channels,
@@ -106,22 +105,22 @@ var SlackFeed = React.createClass( {
     });
 	},
 	render: function() {
+    var newTeam = <button onClick={this.resetStore}>New Team</button>;
     if(!this.state.token) {
-      //slack sign-in button
       return(
         <div>
           <a href="https://slack.com/oauth/authorize?scope=chat:write:user+channels:history+team:read+users:read+channels:read&client_id=148278991843.147671805249">
             <img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>
-          <button onClick={this.resetStore}>Reset</button>
+          {newTeam}
         </div>
   );
     } else if (this.state.chanGet && this.state.mainGet) {
       return (
         <section>
-          <button onClick={this.resetStore}>Reset</button>
-          <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} chanId={this.state.chanId} onChange={this.newChan}/>
-          <PostMessage token={this.state.token} chanId={this.state.chanId}/>
-          <MessageList userList={this.state.userList} messageList={this.state.messageList}/>
+          {newTeam}
+          <ChannelInfo teamInfo={this.state.teamInfo} chanList={this.state.chanList} chanId={this.state.chanId} onChange={this.newChan} />
+          <PostMessage token={this.state.token} chanId={this.state.chanId} />
+          <MessageList userList={this.state.userList} messageList={this.state.messageList} />
         </section> );
     } else {
       return null;

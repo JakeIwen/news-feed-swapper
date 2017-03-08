@@ -8,7 +8,7 @@ var MessageList = React.createClass( {
     return { usersById: {} };
   },
   formatDates: function () {
-    var dates = this.props.messageList.map(message => moment(message.ts*1000).format('MMMM Do YYYY'));
+    var dates = this.props.messageList.map(message => moment.unix(message.ts).format('MMMM Do YYYY'));
     // console.log('datesfirst', dates);
     var lastDate = dates[0];
     for (var i = 1; i < dates.length; i++) {
@@ -36,13 +36,16 @@ var MessageList = React.createClass( {
 	},
   replaceTextElements: function(text, ts) {
     const self = this;
+    // if (ts == ("1488390170.000460" || "1488390217.000463")) {
+    //   console.log('dupe ts', ts, text);
+    // }
     const url = /([^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi;
     text = text.replace(/(@.........\|)/g , '')
     .replace(/<.+>/g, match =>
       match.replace(/<|>/g, ""))
     .replace(/@([A-Z]|\d){8}/g, match =>
-      console.log(match.replace("@", "").substring(0, match.length - 1)));
-    console.log('text', [text]);
+      match.replace("@", ""));
+    // console.log('text', [text]);
     text = reactReplace(text,  url, (match, i) => createMedia(match, ts));
     return text;
     },
@@ -73,7 +76,7 @@ var MessageList = React.createClass( {
 });
 
 function createMedia (match, ts) {
-  console.log('createmedia', match);
+  // console.log('createmedia', match);
   var ret;
   if (match.match(/vimeo|youtube|youtu\.be/g))
     ret =  <iframe key={ts} className="slackFrame" src={match.replace("watch?v=", "/embed/")} />;
@@ -81,7 +84,7 @@ function createMedia (match, ts) {
     ret =  <img key={ts} className="slackPic" src={match} />;
   else
     ret = <a href={match} key={ts}>{match}</a>;
-  console.log("ret", ret);
+  // console.log("media ret", ret);
   return ret;
 }
 module.exports = MessageList;
