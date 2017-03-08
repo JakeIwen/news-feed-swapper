@@ -26,7 +26,6 @@ var ChannelInfo = React.createClass( {
 				apiMethod: "im.history"
 			} );
 		}
-		console.log('chanSelect, imSelect,', chanSelect, imSelect);
 		this.setState({
 			chanSelect: chanSelect,
 			imSelect: imSelect,

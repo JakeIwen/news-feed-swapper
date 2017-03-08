@@ -1,20 +1,17 @@
 const React = require('react');
-const request = require('request');
-
+import { buildUrl, httpDo } from './helper-functions';
 
 var PostMessage = React.createClass( {
   getInitialState: function(){
     return { postText: '' };
   },
   postToSlack: function () {
-    console.log('post props', this.props);
     const self = this;
-    console.log('post txt, chanid', this.state.postText, self.props.viewId);
     var postUrl = buildUrl(self.props.token, 'chat.postMessage', self.props.viewId, self.state.postText);
     // console.log('url', url);
     httpDo(postUrl, function (err, res) {
-      if(err) console.log('post fail', err);
-      console.log('post res', res);
+      if(err || !res.ok) console.log('post fail', res.error || err);
+      console.log('post res', res.error);
       self.setState( { postText: '' } );
     });
   },
@@ -35,26 +32,5 @@ var PostMessage = React.createClass( {
     );
   }
 } );
-
-
-function httpDo(url, callback) {
-  const options = {
-    url :  url,
-    json : true
-  };
-  request(options,
-    function(err, res, body) {
-      callback(err, body);
-    }
-  );
-}
-function buildUrl (token, method, arg, text) {
-  arg = (arg) ? ('&channel=' + arg) : '';
-  text = (text) ? ('&text=' + text) : '';
-  var query = 'https://slack.com/api/';
-  query += method + "?token=" + token + arg + text + '&pretty=1';
-  // + '1&scope=' + method.split('.')[0] + ":read";
-  return encodeURI(query);
-}
 
 module.exports = PostMessage;
