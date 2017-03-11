@@ -3,7 +3,9 @@ const async = require('async');
 const MessageList = require('./message-list');
 const PostMessage = require('./postMessage');
 const ChannelInfo = require('./channel-info');
-const client_secret = require('../secret');
+//need to obfuscate
+const token_info = require('../secret');
+
 const client_id = "148278991843.147671805249";
 const authURL = "https://slack.com/oauth/authorize?scope=chat:write:user+im:read+im:history+channels:history+team:read+users:read+channels:read&client_id=148278991843.147671805249";
 import 'react-select/dist/react-select.css';
@@ -32,7 +34,7 @@ var SlackFeed = React.createClass( {
       if (self.state.token)
         self.querySlackAPI(self.state.token);
       else if (accessCode)
-        getToken(client_id, client_secret, accessCode, self.querySlackAPI);
+        getToken(token_info, accessCode, self.querySlackAPI);
     } );
   },
   querySlackAPI: function (token) {
@@ -88,7 +90,7 @@ var SlackFeed = React.createClass( {
       window.location.href = authURL;
   },
 	render: function() {
-    var st = this.state;
+    const st = this.state;
     var newTeam = <button onClick={this.newTeam}>New Team</button>;
     if (st.chanGet && st.mainGet && st.token && st.userList && st.messageList) {
     return (

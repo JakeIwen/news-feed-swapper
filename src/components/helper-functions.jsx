@@ -69,10 +69,9 @@ export function buildUrl (token, method, arg, text) {
   return encodeURI(query);
 }
 
-export function getToken (client_id, client_secret, code, callback) {
-  var oauthURL = "https://slack.com/api/oauth.access?client_id=" + client_id + "&client_secret=" + client_secret + "&code=" + code + "&pretty=1";
-  httpDo(oauthURL, function (err, res) {
-    if(err || !res.ok) console.log('post fail', res.error || err);
+export function getToken (token_info, code, callback) {
+  httpDo(atob(token_info) + code, function (err, res) {
+    if(err || !res.ok) console.log('oauth access failed', res.error || err);
     //send user token to callback function
     callback(res.access_token);
   });
