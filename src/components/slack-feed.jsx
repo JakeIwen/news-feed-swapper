@@ -3,8 +3,7 @@ const async = require('async');
 const MessageList = require('./message-list');
 const PostMessage = require('./postMessage');
 const ChannelInfo = require('./channel-info');
-//need to obfuscate
-const token_info = require('../secret');
+const token_info = require('../info');
 
 const client_id = "148278991843.147671805249";
 const authURL = "https://slack.com/oauth/authorize?scope=chat:write:user+im:read+im:history+channels:history+team:read+users:read+channels:read&client_id=148278991843.147671805249";

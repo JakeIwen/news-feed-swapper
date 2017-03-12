@@ -42,7 +42,7 @@ function replaceTextElements(text, ts, usersByID) {
 function createMedia (match, ts) {
   var ret;
   if (match.match(/vimeo|youtube|youtu\.be/g))
-    ret =  <iframe key={ts} className="slackFrame" src={match.replace("watch?v=", "/embed/")} />;
+    ret =  <iframe key={ts} className="slackFrame" src={match.replace("watch?v=", "/embed/").replace("m.youtube", "youtube")} />;
   else if (match.match(/\.jpg|\.png|\.gif|\.bmp|\.svg/g))
     ret =  <img key={ts} className="slackPic" src={match} />;
   else
