@@ -1,7 +1,7 @@
 Chrome browser extension to replace Facebook newsfeed with Slack API.
 
 Current development priority:
-Implement OAuth 2.0 to allow users to get their own API keys
+Implement Redux
 
 Project based on NewsFeed Eradicator
 

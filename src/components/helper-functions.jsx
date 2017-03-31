@@ -12,7 +12,7 @@ export function hashUserList(userList) {
   var usersById = {};
   for (var i = 0; i < userList.length; i++)
     usersById[userList[i].id] = userList[i];
-    console.log('usersById', usersById);
+  console.log('usersById', usersById);
   return usersById;
 }
 
