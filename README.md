@@ -8,6 +8,7 @@ This project is ongoing, requiring installation as an unpacked extension to use.
 * Implement Redux
 * File uploads
 * File viewing
+* Live updating 
 
 ## Technologies Used
 
