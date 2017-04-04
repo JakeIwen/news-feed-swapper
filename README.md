@@ -8,11 +8,11 @@ This project is ongoing, requiring installation as an unpacked extension to use.
 * Implement Redux
 * File uploads
 * File viewing
-* Live updating 
+* Live updating
 
 ## Technologies Used
 
-ReactJS | JacaScript | TypeScript | WebPack | OAuth2.0 | Slack API
+ReactJS | JavaScript | TypeScript | WebPack | OAuth2.0 | Slack API | Redux
 
 ![Screenshot](https://github.com/JakeIwen/news-feed-swapper/blob/master/assets/NFSwapper_1.png)
 
