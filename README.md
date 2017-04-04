@@ -1,29 +1,22 @@
-Chrome browser extension to replace Facebook newsfeed with Slack API.
+#News Feed Swapper
 
-Current development priority:
-Implement Redux
+A Chrome browser extension to replace Facebook newsfeed with Slack API.
 
-Project based on NewsFeed Eradicator
+This project is ongoing, requiring installation as an unpacked extension to use.  
 
-news-feed-eradicator.west.io
+## Current development priorities:
+* Implement Redux
+* File uploads
+* File viewing
 
-Everything in ./src/components is new code
+## Technologies Used
 
-
+ReactJS | JacaScript | TypeScript | WebPack | OAuth2.0 | Slack API
 
 ![Screenshot](https://github.com/JakeIwen/news-feed-swapper/blob/master/assets/NFSwapper_1.png)
 
-====================
+## Inspiration
 
-Development
------------
-Project folder structure:
+Project based on [NewsFeed Eradicator](news-feed-eradicator.west.io)
 
-    src                             # Common code across all browsers
-    browsers                        # Browser specific code
-    assets                          # Images
-    news-feed-eradicator.west.io    # Companion website
-
-    # Build output:
-    build                           # The raw extension contents for each browser
-    dist                            # Distributable extension package for browsers
+Everything in ./src/components is new code
