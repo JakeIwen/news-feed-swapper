@@ -21,3 +21,11 @@ ReactJS | JavaScript | TypeScript | WebPack | OAuth2.0 | Slack API | Redux
 Project based on [NewsFeed Eradicator](news-feed-eradicator.west.io)
 
 Everything in ./src/components is new code
+
+
+Development
+-------------
+
+make install
+
+yarn watch

@@ -1,5 +1,6 @@
 
 var webpack = require( 'webpack' );
+
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var browser = 'chrome';
 var env = process.env.NODE_ENV || 'dev';

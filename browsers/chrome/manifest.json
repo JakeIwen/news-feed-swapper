@@ -1,13 +1,15 @@
 {
-	"name": "News Feed Eradicator for Facebook",
-	"version": "1.0.4",
-	"description": "Find yourself spending too much time on Facebook? Eradicate distractions by replacing your entire news feed with an inspiring quote",
+	"name": "News Feed Swapper for Facebook",
+	"version": "0.1.0",
+	"description": "Find yourself spending too much time on Facebook? Make it more productive with a Slack channel of your choosing",
 	"manifest_version": 2,
 	"permissions": [
 		"storage",
 		"http://www.facebook.com/*",
 		"https://www.facebook.com/*",
 		"http://web.facebook.com/*",
+		"https://www.slack.com/*",
+		"https://slack.com/*",
 		"https://web.facebook.com/*"
 	],
 	"icons": {

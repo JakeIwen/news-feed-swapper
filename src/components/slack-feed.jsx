@@ -50,7 +50,7 @@ var SlackFeed = React.createClass( {
       if(err || !res[0].ok) console.log('post fail', res[0].error || err);
       // get/reload channel
       console.log('async res', res);
-      self.newChan(self.state.view || res[1].channels[0].id) ;
+      self.newChan(self.state.view || (res[0].ok && res[1].channels[0].id)) ;
       self.setState( {
         teamInfo: res[0].team,
         chanList: res[1].channels,
@@ -91,31 +91,34 @@ var SlackFeed = React.createClass( {
 	render: function() {
     const st = this.state;
     var newTeam = <button onClick={this.newTeam}>New Team</button>;
+    var teamName = "";
+    var slackSite = <a href={"https://www" + teamName + ".slack.com"}> Visit on Slack Website</a>;
     if (st.chanGet && st.mainGet && st.token && st.userList && st.messageList) {
-    return (
-      <section>
-        {newTeam}
-        <ChannelInfo
-          teamInfo={st.teamInfo}
-          chanList={st.chanList}
-          imList={st.imList}
-          viewId={st.view.value}
-          usersById={st.usersById}
-          onChange={this.newChan} />
-        <PostMessage
-          token={st.token}
-          viewId={st.view.value} />
-        <MessageList
-          usersById={st.usersById}
-          userList={st.userList}
-          messageList={st.messageList} />
-      </section> );
+      teamName = st.teamInfo.name + ".";
+      return (
+        <section>
+          {newTeam} {slackSite}
+          <ChannelInfo
+            teamInfo={st.teamInfo}
+            chanList={st.chanList}
+            imList={st.imList}
+            viewId={st.view.value}
+            usersById={st.usersById}
+            onChange={this.newChan} />
+          <PostMessage
+            token={st.token}
+            viewId={st.view.value} />
+          <MessageList
+            usersById={st.usersById}
+            userList={st.userList}
+            messageList={st.messageList} />
+        </section> );
     } else {
       return(
         <div>
           <a href={authURL}>
             <img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>
-          {newTeam}
+            {newTeam} {slackSite}
         </div> );
     }
   }
