@@ -17,6 +17,8 @@ var PostMessage = React.createClass( {
   },
   handleChange: function(event) {
     this.setState({postText: event.target.value});
+    if (event.key == "Enter")
+      this.postToSlack();
   },
   render: function() {
     return (
@@ -26,7 +28,8 @@ var PostMessage = React.createClass( {
           className="postMessage"
           value={this.state.postText}
           placeholder="Post to Slack..."
-          onChange={this.handleChange} />
+          onChange={this.handleChange}
+          onKeyPress={this.handleChange} />
         <input type="submit"/>
       </form>
     );

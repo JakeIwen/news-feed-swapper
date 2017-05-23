@@ -12,7 +12,6 @@ export function hashUserList(userList) {
   var usersById = {};
   for (var i = 0; i < userList.length; i++)
     usersById[userList[i].id] = userList[i];
-  console.log('usersById', usersById);
   return usersById;
 }
 
@@ -51,14 +50,12 @@ function createMedia (match, ts) {
 }
 
 export function httpDo(url, callback) {
-  console.log('url', url);
   const options = {
     url :  url,
     json : true
   };
   request(options,
     function(err, res, body) {
-      console.log('body', body);
       callback(err, body);
     }
   );
@@ -72,7 +69,6 @@ export function buildUrl (token, method, arg, text) {
 }
 
 export function getToken (token_info, code, callback) {
-  console.log("token info, code:", atob(token_info), code);
   httpDo(atob(token_info) + code, function (err, res) {
     if(err || !res.ok) console.log('oauth access failed', res.error || err);
     //send user token to callback function
