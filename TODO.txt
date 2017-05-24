@@ -1,2 +1,3 @@
 Remove un necessary NF Eradicator elements
-set up storage of selected channel etcetera
+dont display name if same user
+unfurl

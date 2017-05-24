@@ -8,8 +8,8 @@ const token_info = require('../info');
 const client_id = "148278991843.147671805249";
 const authURL = "https://slack.com/oauth/authorize?" +
   "client_id=" + client_id +
-  "&scope=client" +
-  "chat:write:user";
+  "&scope=client" ;
+  // "chat:write:user";
   // "im:read" +
   // "im:history" +
   // "channels:history" +
@@ -49,31 +49,47 @@ var SlackFeed = React.createClass( {
   },
   querySlackAPI: function (token) {
     const self = this;
-    const queryURLs = [
-      buildUrl(token, 'team.info'),
-      buildUrl(token, 'channels.list'),
-      buildUrl(token, 'users.list'),
-      buildUrl(token, 'im.list'),
-      buildUrl(token, 'rtm.connect')
-    ];
+    // const queryURLs = [
+    //   buildUrl(token, 'team.info'),
+    //   buildUrl(token, 'channels.list'),
+    //   buildUrl(token, 'users.list'),
+    //   buildUrl(token, 'im.list'),
+    //   buildUrl(token, 'rtm.start')
+    // ];
     console.log("querySlackAPI token", self.state.token);
     self.setState( { token: token } );
-    async.map(queryURLs, httpDo, function (err, res) {
-      if(err || !res[0].ok) console.log('post fail', res[0].error || err);
+    httpDo(buildUrl(token, "rtm.start"), function (err, res) {
+      if(err || !res.ok) console.log('post fail', res.error || err);
       // get/reload channel
-      console.log('async res', res);
-      self.newChan(self.state.view || (res[0].ok && res[1].channels[0].id)) ;
+      console.log('res', res);
+      self.newChan(self.state.view || (res.ok && res.channels[0].id)) ;
       self.setState( {
-        teamInfo: res[0].team,
-        chanList: res[1].channels,
-        userList: res[2].members,
-        imList: res[3].ims,
-        usersById: hashUserList(res[2].members),
-        wssURL: res[4].url,
+        teamInfo: res.team,
+        chanList: res.channels,
+        userList: res.users,
+        imList: res.ims,
+        usersById: hashUserList(res.users),
+        wssURL: res.url,
         mainGet: true
       } );
       updateStorage(self.state);
     });
+    // async.map(queryURLs, httpDo, function (err, res) {
+    //   if(err || !res[4].ok) console.log('post fail', res[4].error || err);
+    //   // get/reload channel
+    //   console.log('async res', res);
+    //   self.newChan(self.state.view || (res[4].ok && res[4].channels[4].id)) ;
+    //   self.setState( {
+    //     teamInfo: res[4].team,
+    //     chanList: res[4].channels,
+    //     userList: res[4].users,
+    //     imList: res[4].ims,
+    //     usersById: hashUserList(res[4].users),
+    //     wssURL: res[4].url,
+    //     mainGet: true
+    //   } );
+    //   updateStorage(self.state);
+    // });
 	},
 	newChan: function (e) {
     const self = this;
@@ -133,7 +149,7 @@ var SlackFeed = React.createClass( {
         <div>
           <a href={authURL}>
             <img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>
-            {newTeam} {slackSite}
+            {slackSite}
         </div> );
     }
   }
