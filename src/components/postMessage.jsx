@@ -7,11 +7,10 @@ var PostMessage = React.createClass( {
   },
   postToSlack: function () {
     const self = this;
-    var postUrl = buildUrl(self.props.token, 'chat.postMessage', self.props.viewId, self.state.postText);
-    // console.log('url', url);
+    var postUrl = buildUrl(self.props.token, 'chat.postMessage', self.props.viewId, self.state.postText, true);
+    console.log('posturl:', postUrl);
     httpDo(postUrl, function (err, res) {
       if(err || !res.ok) console.log('post fail', res.error || err);
-      console.log('post res', res.error);
       self.setState( { postText: '' } );
     });
   },

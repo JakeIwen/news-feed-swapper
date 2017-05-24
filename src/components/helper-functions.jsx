@@ -15,17 +15,17 @@ export function hashUserList(userList) {
   return usersById;
 }
 
-export function formatMessages(list, usersByID) {
-  var lastDate = null;
-  for (var i = 0; i < list.length; i++) {
-    list[i].text = replaceTextElements(list[i].text, list[i].ts, usersByID);
-    list[i].date = moment.unix(list[i].ts).format('MMMM Do YYYY');
-    if (list[i].date != lastDate) {
-      list[i].showDate = true;
-      lastDate = list[i].date;
+export function formatMessages(newList, usersByID, existingList) {
+  var lastDate = (newList.length == 1) ? existingList[0].date : null;
+  for (var i = 0; i < newList.length; i++) {
+    newList[i].text = replaceTextElements(newList[i].text, newList[i].ts, usersByID);
+    newList[i].date = moment.unix(newList[i].ts).format('MMMM Do YYYY');
+    if (newList[i].date != lastDate) {
+      newList[i].showDate = true;
+      lastDate = newList[i].date;
     }
   }
-  return list;
+  return newList;
 }
 function replaceTextElements(text, ts, usersByID) {
   const self = this;
@@ -37,7 +37,7 @@ function replaceTextElements(text, ts, usersByID) {
   // console.log('text', [text]);
   text = reactReplace(text,  url, (match, i) => createMedia(match, ts));
   return text;
-}
+ }
 function createMedia (match, ts) {
   var ret;
   if (match.match(/vimeo|youtube|youtu\.be/g))
@@ -60,19 +60,27 @@ export function httpDo(url, callback) {
     }
   );
 }
-export function buildUrl (token, method, arg, text) {
+export function buildUrl(token, method, arg, text, as_user) {
   arg = (arg) ? ('&channel=' + arg) : '';
   text = (text) ? ('&text=' + text) : '';
+  as_user = (as_user) ? ('&as_user=true') : '';
   var query = 'https://slack.com/api/';
-  query += method + "?token=" + token + arg + text + '&pretty=1';
+  query += method + "?token=" + token + arg + text + as_user + '&pretty=1';
   return encodeURI(query);
 }
 
-export function getToken (token_info, code, callback) {
+export function getToken(token_info, code, callback) {
   httpDo(atob(token_info) + code, function (err, res) {
     if(err || !res.ok) console.log('oauth access failed', res.error || err);
     //send user token to callback function
-    console.log('res', res);
     callback(res.access_token);
   });
 }
+
+// export function rtmConnect(token, callback) {
+//   httpDo(buildUrl(token, 'rtm.connect'), function(err, res) {
+//     if(err || !res.ok) console.log('RTM access failed', res.error || err);
+//     console.log('rtm res', res);
+//     console.log('rtm res url', res.url);
+//   });
+// }

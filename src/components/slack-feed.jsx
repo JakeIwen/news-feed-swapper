@@ -1,4 +1,4 @@
-const React = require( 'react' );
+const React = require('react');
 const async = require('async');
 const MessageList = require('./message-list');
 const PostMessage = require('./postMessage');
@@ -6,9 +6,20 @@ const ChannelInfo = require('./channel-info');
 const token_info = require('../info');
 
 const client_id = "148278991843.147671805249";
-const authURL = "https://slack.com/oauth/authorize?scope=chat:write:user+im:read+im:history+channels:history+team:read+users:read+channels:read&client_id=148278991843.147671805249";
+const authURL = "https://slack.com/oauth/authorize?" +
+  "client_id=" + client_id +
+  "&scope=client" +
+  "chat:write:user";
+  // "im:read" +
+  // "im:history" +
+  // "channels:history" +
+  // "team:read" +
+  // "users:read" +
+  // "channels:read" +
+  // "mpim:history" +
+  // "mpim:read";
 import 'react-select/dist/react-select.css';
-import { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken} from './helper-functions';
+import { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken } from './helper-functions';
 
 
 var SlackFeed = React.createClass( {
@@ -42,7 +53,8 @@ var SlackFeed = React.createClass( {
       buildUrl(token, 'team.info'),
       buildUrl(token, 'channels.list'),
       buildUrl(token, 'users.list'),
-      buildUrl(token, 'im.list')
+      buildUrl(token, 'im.list'),
+      buildUrl(token, 'rtm.connect')
     ];
     console.log("querySlackAPI token", self.state.token);
     self.setState( { token: token } );
@@ -57,6 +69,7 @@ var SlackFeed = React.createClass( {
         userList: res[2].members,
         imList: res[3].ims,
         usersById: hashUserList(res[2].members),
+        wssURL: res[4].url,
         mainGet: true
       } );
       updateStorage(self.state);
@@ -111,7 +124,9 @@ var SlackFeed = React.createClass( {
           <MessageList
             usersById={st.usersById}
             userList={st.userList}
-            messageList={st.messageList} />
+            messageList={st.messageList}
+            wssURL={st.wssURL}
+            chanId={st.viewId} />
         </section> );
     } else {
       return(

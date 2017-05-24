@@ -28,4 +28,4 @@ Development
 
 make install
 
-yarn watch
+npm run watch
