@@ -71,6 +71,7 @@ export function buildUrl(token, method, arg, text, as_user) {
 
 export function getToken(token_info, code, callback) {
   httpDo(atob(token_info) + code, function (err, res) {
+    console.log('token', atob(token_info) + code);
     if(err || !res.ok) console.log('oauth access failed', res.error || err);
     //send user token to callback function
     callback(res.access_token);

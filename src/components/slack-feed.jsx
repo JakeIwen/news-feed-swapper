@@ -8,16 +8,9 @@ const token_info = require('../info');
 const client_id = "148278991843.147671805249";
 const authURL = "https://slack.com/oauth/authorize?" +
   "client_id=" + client_id +
-  "&scope=client" ;
-  // "chat:write:user";
-  // "im:read" +
-  // "im:history" +
-  // "channels:history" +
-  // "team:read" +
-  // "users:read" +
-  // "channels:read" +
-  // "mpim:history" +
-  // "mpim:read";
+  "&scope=client";
+  // "+chat:write:user";
+import Websocket from 'react-websocket';
 import 'react-select/dist/react-select.css';
 import { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken } from './helper-functions';
 
@@ -40,56 +33,45 @@ var SlackFeed = React.createClass( {
       data.chanGet = false;
       self.setState( data );
       console.log('STORAGE LOCAL DATA:', data);
-      var accessCode = window.location.href.match(/(\d{12}\.){2}.{10}/g);
+      var accessCode = window.location.href.match(/(\d{12}\.){2}.*(?=&)/g);
       if (self.state.token)
         self.querySlackAPI(self.state.token);
       else if (accessCode)
         getToken(token_info, accessCode, self.querySlackAPI);
     } );
   },
+  handleWss: function(data) {
+		const self = this;
+		let result = JSON.parse(data);
+		console.log('WSS DATA', result);
+		if (result.type == "message" && result.channel == self.state.viewId) {
+			var newMsg = formatMessages([result], self.state.usersById, self.state.messageList);
+			self.setState( { messageList: newMsg.concat(self.state.messageList) } );
+			console.log('new messagelist', self.state.messageList);
+		}
+	},
   querySlackAPI: function (token) {
     const self = this;
-    // const queryURLs = [
-    //   buildUrl(token, 'team.info'),
-    //   buildUrl(token, 'channels.list'),
-    //   buildUrl(token, 'users.list'),
-    //   buildUrl(token, 'im.list'),
-    //   buildUrl(token, 'rtm.start')
-    // ];
-    console.log("querySlackAPI token", self.state.token);
     self.setState( { token: token } );
     httpDo(buildUrl(token, "rtm.start"), function (err, res) {
-      if(err || !res.ok) console.log('post fail', res.error || err);
-      // get/reload channel
       console.log('res', res);
-      self.newChan(self.state.view || (res.ok && res.channels[0].id)) ;
-      self.setState( {
-        teamInfo: res.team,
-        chanList: res.channels,
-        userList: res.users,
-        imList: res.ims,
-        usersById: hashUserList(res.users),
-        wssURL: res.url,
-        mainGet: true
-      } );
-      updateStorage(self.state);
-    });
-    // async.map(queryURLs, httpDo, function (err, res) {
-    //   if(err || !res[4].ok) console.log('post fail', res[4].error || err);
-    //   // get/reload channel
-    //   console.log('async res', res);
-    //   self.newChan(self.state.view || (res[4].ok && res[4].channels[4].id)) ;
-    //   self.setState( {
-    //     teamInfo: res[4].team,
-    //     chanList: res[4].channels,
-    //     userList: res[4].users,
-    //     imList: res[4].ims,
-    //     usersById: hashUserList(res[4].users),
-    //     wssURL: res[4].url,
-    //     mainGet: true
-    //   } );
-    //   updateStorage(self.state);
-    // });
+      if(err || !res.ok) {
+        console.log('error', res.error || err);
+        chrome.storage.local.clear();
+      } else {
+        self.newChan(self.state.view || (res.ok && res.channels[0].id)) ;
+        self.setState( {
+          teamInfo: res.team,
+          chanList: res.channels,
+          userList: res.users,
+          imList: res.ims,
+          usersById: hashUserList(res.users),
+          wssURL: res.url,
+          mainGet: true
+        } );
+        updateStorage(self.state);
+    }
+  });
 	},
 	newChan: function (e) {
     const self = this;
@@ -122,7 +104,8 @@ var SlackFeed = React.createClass( {
     var newTeam = <button onClick={this.newTeam}>New Team</button>;
     var teamName = "";
     var slackSite = <a href={"https://www" + teamName + ".slack.com"}> Visit on Slack Website</a>;
-    if (st.chanGet && st.mainGet && st.token && st.userList && st.messageList) {
+    var signIn = <a href={authURL}><img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>;
+    if (st.chanGet && st.mainGet && st.token) {
       teamName = st.teamInfo.name + ".";
       return (
         <section>
@@ -141,16 +124,12 @@ var SlackFeed = React.createClass( {
             usersById={st.usersById}
             userList={st.userList}
             messageList={st.messageList}
-            wssURL={st.wssURL}
-            chanId={st.viewId} />
+            viewId={st.viewId} />
+          <Websocket url={st.wssURL}
+  					onMessage={this.handleWss} />
         </section> );
     } else {
-      return(
-        <div>
-          <a href={authURL}>
-            <img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>
-            {slackSite}
-        </div> );
+      return( <section>{signIn}</section> );
     }
   }
 });
