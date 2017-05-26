@@ -2,6 +2,7 @@ const React = require( 'react' );
 const reactReplace = require('react-string-replace');
 const moment = require('moment');
 const request = require('request');
+const slackdown = require('slackdown');
 
 export function updateStorage(data) {
   chrome.storage.local.set( data );
@@ -18,7 +19,7 @@ export function hashUserList(userList) {
 export function formatMessages(newList, usersByID, existingList) {
   var lastDate = (newList.length == 1) ? existingList[0].date : null;
   for (var i = 0; i < newList.length; i++) {
-    newList[i].text = replaceTextElements(newList[i].text, newList[i].ts, usersByID);
+    newList[i].text = htmlFormat(slackdown.parse(newList[i].text));
     newList[i].date = moment.unix(newList[i].ts).format('MMMM Do YYYY');
     if (newList[i].date != lastDate) {
       newList[i].showDate = true;
@@ -35,9 +36,15 @@ function replaceTextElements(text, ts, usersByID) {
   .replace(/<.+>/g, match => match.replace(/<|>/g, ""))
   .replace(/@([A-Z]|\d){8}/g, match => match.replace("@", ""));
   // console.log('text', [text]);
-  text = reactReplace(text,  url, (match, i) => createMedia(match, ts));
-  return text;
+  // text = reactReplace(text,  url, (match, i) => createMedia(match, ts));
+  return htmlFormat(text);
  }
+
+export function htmlFormat(html) {
+ const htmlObj = {__html: html};
+ return ( <div dangerouslySetInnerHTML={htmlObj}></div> );
+}
+
 function createMedia (match, ts) {
   var ret;
   if (match.match(/vimeo|youtube|youtu\.be/g))
@@ -77,11 +84,3 @@ export function getToken(token_info, code, callback) {
     callback(res.access_token);
   });
 }
-
-// export function rtmConnect(token, callback) {
-//   httpDo(buildUrl(token, 'rtm.connect'), function(err, res) {
-//     if(err || !res.ok) console.log('RTM access failed', res.error || err);
-//     console.log('rtm res', res);
-//     console.log('rtm res url', res.url);
-//   });
-// }

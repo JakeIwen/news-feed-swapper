@@ -14,7 +14,6 @@ import Websocket from 'react-websocket';
 import 'react-select/dist/react-select.css';
 import { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken } from './helper-functions';
 
-
 var SlackFeed = React.createClass( {
   getInitialState: function() {
     return( {
@@ -99,17 +98,25 @@ var SlackFeed = React.createClass( {
       console.log('newteam');
       window.location.href = authURL;
   },
+  slackSite: function () {
+    return (
+      <a href={"https://www." + this.state.teamInfo.name + ".slack.com"}>
+        Visit on Slack Website
+      </a>
+    );
+  },
 	render: function() {
     const st = this.state;
     var newTeam = <button onClick={this.newTeam}>New Team</button>;
-    var teamName = "";
-    var slackSite = <a href={"https://www" + teamName + ".slack.com"}> Visit on Slack Website</a>;
-    var signIn = <a href={authURL}><img src="https://api.slack.com/img/sign_in_with_slack.png" /></a>;
+    var signIn =
+    <a href={authURL}>
+      <img src="https://api.slack.com/img/sign_in_with_slack.png" />
+    </a>;
+    console.log('st', st);
     if (st.chanGet && st.mainGet && st.token) {
-      teamName = st.teamInfo.name + ".";
       return (
         <section>
-          {newTeam} {slackSite}
+          {newTeam} {this.slackSite()}
           <ChannelInfo
             teamInfo={st.teamInfo}
             chanList={st.chanList}

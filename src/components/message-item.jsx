@@ -1,24 +1,20 @@
 const React = require( 'react' );
 const Tooltip = require('rc-tooltip');
+import { htmlFormat } from './helper-functions';
+
 
 var MessageItem = React.createClass( {
 	embed: function(item) {
-		if (item) {
-			console.log('item', item);
-
-		if (item[0]) {
+		if (item && item[0]) {
 			console.log('item[0]', item[0]);
-
-		if (item[0].video_html) {
-			console.log('item[0].video_html', item[0].video_html);
-
-			return {__html: item[0].video_html};
-		}}}
+			if (item[0].video_html) {
+				return htmlFormat(item[0].video_html.replace('autoplay=1', 'autoplay=0'));
+		}}
 	},
 	render: function() {
 		const self = this;
 		console.log('attachment', this.props.attachments);
-		var text =
+		var tooltip =
 			<div>
 				<img src={this.props.profile.image_192} /><br />
 				<span>{this.props.profile.real_name}</span><br />
@@ -29,13 +25,12 @@ var MessageItem = React.createClass( {
 				<p className="date">{this.props.date}</p>
 				<Tooltip
 					placement="right"
-					overlay={text}
+					overlay={tooltip}
 					arrowContent={<div className="rc-tooltip-arrow-inner"></div>}>
 					<a href="#" className="user">{this.props.user}:</a>
 				</Tooltip><br />
-			<span>{self.props.text}</span>
-			<div
-				dangerouslySetInnerHTML={self.embed(self.props.attachments)}></div>
+				{self.props.text}
+				{self.embed(self.props.attachments)}
 			</div>
 		);
 	}

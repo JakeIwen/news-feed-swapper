@@ -1,5 +1,4 @@
 const React = require( 'react' );
-const reactReplace = require('react-string-replace');
 const MessageItem = require('./message-item');
 import { formatMessages } from './helper-functions';
 

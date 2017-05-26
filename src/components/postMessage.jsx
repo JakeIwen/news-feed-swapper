@@ -15,22 +15,22 @@ var PostMessage = React.createClass( {
     });
   },
   handleChange: function(event) {
-    this.setState({postText: event.target.value});
-    if (event.key == "Enter")
+    if (event.key == "Enter") {
+      event.preventDefault();
       this.postToSlack();
+    } else {
+      this.setState({postText: event.target.value});
+    }
   },
   render: function() {
     return (
-      <form onSubmit={this.postToSlack}>
-        <textarea
-          type="text"
-          className="postMessage"
-          value={this.state.postText}
-          placeholder="Post to Slack..."
-          onChange={this.handleChange}
-          onKeyPress={this.handleChange} />
-        <input type="submit"/>
-      </form>
+      <textarea
+        type="text"
+        className="postMessage"
+        value={this.state.postText}
+        placeholder="Post to Slack..."
+        onChange={this.handleChange}
+        onKeyPress={this.handleChange} />
     );
   }
 } );

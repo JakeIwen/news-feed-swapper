@@ -44,6 +44,7 @@
     "react-textselect": "^0.2.0",
     "react-websocket": "^1.1.7",
     "request": "^2.79.0",
+    "slackdown": "^0.1.1",
     "ts-loader": "^0.8.2"
   },
   "scripts": {
