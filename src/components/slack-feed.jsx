@@ -128,10 +128,7 @@ var SlackFeed = React.createClass( {
             token={st.token}
             viewId={st.view.value} />
           <MessageList
-            usersById={st.usersById}
-            userList={st.userList}
-            messageList={st.messageList}
-            viewId={st.viewId} />
+            messageList={st.messageList} />
           <Websocket url={st.wssURL}
   					onMessage={this.handleWss} />
         </section> );

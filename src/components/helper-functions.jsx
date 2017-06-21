@@ -1,4 +1,4 @@
-const React = require( 'react' );
+ const React = require( 'react' );
 const reactReplace = require('react-string-replace');
 const moment = require('moment');
 const request = require('request');
@@ -16,11 +16,13 @@ export function hashUserList(userList) {
   return usersById;
 }
 
-export function formatMessages(newList, usersByID, existingList) {
+export function formatMessages(newList, usersById, existingList) {
   var lastDate = (newList.length == 1) ? existingList[0].date : null;
   for (var i = 0; i < newList.length; i++) {
     newList[i].text = htmlFormat(slackdown.parse(newList[i].text));
     newList[i].date = moment.unix(newList[i].ts).format('MMMM Do YYYY');
+    newList[i].userName = newList[i].user ? usersById[newList[i].user].name : null;
+    newList[i].profile = newList[i].user ? usersById[newList[i].user].profile : null;
     if (newList[i].date != lastDate) {
       newList[i].showDate = true;
       lastDate = newList[i].date;
