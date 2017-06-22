@@ -10,12 +10,10 @@ class PostMessage extends React.Component {
   }
 
   postToSlack() {
-    const self = this;
-    var postUrl = buildUrl(self.props.token, 'chat.postMessage', self.props.viewId, self.state.postText, true);
-    console.log('posturl:', postUrl);
-    httpDo(postUrl, function (err, res) {
+    const postUrl = buildUrl(this.props.token, 'chat.postMessage', this.props.viewId, this.state.postText, true);
+    httpDo(postUrl, (err, res) => {
       if(err || !res.ok) console.log('post fail', res.error || err);
-      self.setState( { postText: '' } );
+      this.setState( { postText: '' } );
     });
   }
 
@@ -24,7 +22,8 @@ class PostMessage extends React.Component {
       event.preventDefault();
       this.postToSlack();
     } else {
-      this.setState({postText: event.target.value});
+      //is there a way to avoid setting the state every keystroke?
+      this.setState({ postText: event.target.value });
     }
   }
 
@@ -33,10 +32,10 @@ class PostMessage extends React.Component {
       <textarea
         type="text"
         className="postMessage"
-        value={this.state.postText}
+        value={ this.state.postText }
         placeholder="Post to Slack..."
-        onChange={this.handleChange}
-        onKeyPress={this.handleChange} />
+        onChange={ this.handleChange }
+        onKeyPress={ this.handleChange } />
     );
   }
 }
