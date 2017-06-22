@@ -3,8 +3,10 @@ import { buildUrl, httpDo } from './helper-functions';
 
 class PostMessage extends React.Component {
   constructor(props) {
-    super(props);
+    super();
     this.state = { postText: '' };
+    this.handleChange = this.handleChange.bind(this);
+    this.postToSlack = this.postToSlack.bind(this);
   }
 
   postToSlack() {
