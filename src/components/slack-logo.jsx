@@ -5,7 +5,7 @@ const SlackLogo = () => {
 
 	return (
 		<div className='logo'>
-			<img src={ slackImg } height='40' />
+			<img src={slackImg} height='40' />
 			<span>SlackFeed</span>
 		</div>
 	);

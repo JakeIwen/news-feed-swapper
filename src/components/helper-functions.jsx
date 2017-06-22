@@ -1,4 +1,4 @@
- const React = require( 'react' );
+const React = require( 'react' );
 const reactReplace = require('react-string-replace');
 const moment = require('moment');
 const request = require('request');
