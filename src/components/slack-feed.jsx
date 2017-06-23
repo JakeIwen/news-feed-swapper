@@ -6,7 +6,6 @@ const ChannelInfo = require('./channel-info');
 const TeamSite = require('./team-site');
 const token_info = require('../info');
 
-
 import Websocket from 'react-websocket';
 import 'react-select/dist/react-select.css';
 import { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken, teamSelector } from './helper-functions';
@@ -46,23 +45,22 @@ class SlackFeed extends React.Component {
   handleWss(data) {
 		const result = JSON.parse(data);
 		if (result.type == "message" && result.channel == this.state.viewId)
-      this.setState( { messages: [result].concat(this.state.messages) } );
+      console.log( "WSS SET STEAT", this.setState( { messages: [result].concat(this.state.messages) } ));
 	}
 
   querySlackAPI(token) {
-    this.setState( { token: token } );
+    !this.state.token && this.setState( { token: token } );
     httpDo(buildUrl(token, "rtm.start"), (err, res) => this.handleResponse(err, res));
 	}
 
   handleResponse(err, res) {
     console.log('res', res);
     if(err || !res.ok) {
-      console.log('error', res.error || err);
+      console.log('error; clearing local storage now', res.error || err);
       chrome.storage.local.clear();
     } else {
       //TODO currently defaults to previously selected channels but not ims
-      this.newChan(this.state.method || "channels.history",
-        this.state.viewId || res.channels[0].id, res) ;
+      this.newChan("channels.history", res.channels[0].id, res) ;
     }
   }
 
@@ -106,7 +104,7 @@ class SlackFeed extends React.Component {
           <MessageList
             messageList={ formatMessages(st.messages, st.usersById) } />
           <Websocket url={ st.rtm.url }
-            onMessage={ this.handleWss } />
+            onMessage={ this.handleWss.bind(this) } />
         </section> ) :
         ( <section>{ signIn }</section> );
   }
