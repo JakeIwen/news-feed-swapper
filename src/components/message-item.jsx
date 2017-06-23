@@ -1,5 +1,6 @@
 const React = require( 'react' );
 const Tooltip = require('rc-tooltip');
+
 import { htmlFormat } from './helper-functions';
 
 const MessageItem = props => {

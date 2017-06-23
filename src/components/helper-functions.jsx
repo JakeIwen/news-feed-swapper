@@ -10,15 +10,15 @@ export function updateStorage(data) {
 }
 
 export function hashUserList(userList) {
-  var usersById = {};
-  for (var i = 0; i < userList.length; i++)
+  const usersById = {};
+  for (let i = 0; i < userList.length; i++)
     usersById[userList[i].id] = userList[i];
   return usersById;
 }
 
 export function formatMessages(newList, usersById, existingList) {
-  var lastDate = (newList.length == 1) ? existingList[0].date : null;
-  for (var i = 0; i < newList.length; i++) {
+  let lastDate = (newList.length == 1) ? existingList[0].date : null;
+  for (let i = 0; i < newList.length; i++) {
     newList[i].text = htmlFormat(slackdown.parse(newList[i].text));
     newList[i].date = moment.unix(newList[i].ts).format('MMMM Do YYYY');
     newList[i].userName = newList[i].user ? usersById[newList[i].user].name : null;
@@ -30,25 +30,14 @@ export function formatMessages(newList, usersById, existingList) {
   }
   return newList;
 }
-function replaceTextElements(text, ts, usersByID) {
-  const self = this;
-  const url = /([^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi;
-  text = text.replace(/@.........\|/g , '')
-  .replace(/@........./g, match => usersByID[match.substring(1,10)].name)
-  .replace(/<.+>/g, match => match.replace(/<|>/g, ""))
-  .replace(/@([A-Z]|\d){8}/g, match => match.replace("@", ""));
-  // console.log('text', [text]);
-  // text = reactReplace(text,  url, (match, i) => createMedia(match, ts));
-  return htmlFormat(text);
- }
 
 export function htmlFormat(html) {
  const htmlObj = {__html: html};
- return ( <div dangerouslySetInnerHTML={htmlObj}></div> );
+ return ( <div dangerouslySetInnerHTML={ htmlObj }></div> );
 }
 
 function createMedia (match, ts) {
-  var ret;
+  let ret = null;
   if (match.match(/vimeo|youtube|youtu\.be/g))
     ret =  <iframe key={ts} className="slackFrame" src={match.replace("watch?v=", "/embed/").replace("m.youtube", "youtube")} />;
   else if (match.match(/\.jpg|\.png|\.gif|\.bmp|\.svg/g))
@@ -63,18 +52,14 @@ export function httpDo(url, callback) {
     url :  url,
     json : true
   };
-  request(options,
-    function(err, res, body) {
-      callback(err, body);
-    }
-  );
+  request(options, (err, res, body) => callback(err, body));
 }
+
 export function buildUrl(token, method, arg, text, as_user) {
   arg = (arg) ? ('&channel=' + arg) : '';
   text = (text) ? ('&text=' + text) : '';
   as_user = (as_user) ? ('&as_user=true') : '';
-  var query = 'https://slack.com/api/';
-  query += method + "?token=" + token + arg + text + as_user + '&pretty=1';
+  const query = 'https://slack.com/api/' + method + "?token=" + token + arg + text + as_user + '&pretty=1';
   return encodeURI(query);
 }
 
@@ -86,3 +71,19 @@ export function getToken(token_info, code, callback) {
     callback(res.access_token);
   });
 }
+//
+// export function modePusher()
+//
+
+
+// function replaceTextElements(text, ts, usersByID) {
+//   const self = this;
+//   const url = /([^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi;
+//   text = text.replace(/@.........\|/g , '')
+//   .replace(/@........./g, match => usersByID[match.substring(1,10)].name)
+//   .replace(/<.+>/g, match => match.replace(/<|>/g, ""))
+//   .replace(/@([A-Z]|\d){8}/g, match => match.replace("@", ""));
+//   // console.log('text', [text]);
+//   // text = reactReplace(text,  url, (match, i) => createMedia(match, ts));
+//   return htmlFormat(text);
+//  }

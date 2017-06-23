@@ -1,19 +1,16 @@
 const React = require('react');
 import { buildUrl, httpDo } from './helper-functions';
 
-const PostMessage = props => {
-  return (
-    <textarea
-      type="text"
-      className="postMessage"
-      placeholder="Post to Slack..."
-      onChange={ (e) => handleChange(e, props.token, props.viewId) }
-      onKeyPress={ (e) => handleChange(e, props.token, props.viewId) } />
-  );
-};
+const PostMessage = props => (
+  <textarea
+    className="postMessage"
+    placeholder="Post to Slack..."
+    onKeyPress={ (e) => handleChange(e, props.token, props.viewId) } />
+);
 
 const handleChange = (event, token, viewId) => {
-  if (event.key == "Enter") {
+  if (event.key == "Enter" && !event.shiftKey) {
+    console.log('VALUE', event.target.value);
     event.preventDefault();
     postToSlack(event.target.value, token, viewId);
     event.target.value = '';

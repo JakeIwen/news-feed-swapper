@@ -35,7 +35,7 @@ var ChannelInfo = React.createClass( {
 	newView: function (e) {
 		console.log('changed to', e);
 		if (typeof this.props.onChange === 'function' && e) {
-			this.props.onChange(e);
+			this.props.onChange(e.apiMethod, e.value);
       this.setState( { viewId: e.value} );
 		}
 	},

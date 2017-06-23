@@ -3,10 +3,10 @@ const async = require('async');
 const MessageList = require('./message-list');
 const PostMessage = require('./postMessage');
 const ChannelInfo = require('./channel-info');
-const TeamSite = require('./team-site');
 const token_info = require('../info');
 
-const authURL = "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client";
+const client_id = "148278991843.147671805249";
+const authURL = "https://slack.com/oauth/authorize?client_id=" + client_id + "&scope=client";
 import Websocket from 'react-websocket';
 import 'react-select/dist/react-select.css';
 import { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken } from './helper-functions';
@@ -48,8 +48,8 @@ class SlackFeed extends React.Component {
   handleWss(data) {
 		const result = JSON.parse(data);
 		if (result.type == "message" && result.channel == this.state.viewId) {
-      this.setState( { messageList: newMsg.concat(this.state.messageList) } );
 			const newMsg = formatMessages([result], this.state.usersById, this.state.messageList);
+			this.setState( { messageList: newMsg.concat(this.state.messageList) } );
 		}
 	}
 
@@ -64,11 +64,11 @@ class SlackFeed extends React.Component {
       console.log('error', res.error || err);
       chrome.storage.local.clear();
     } else {
-      //TODO currently defaults to main channel instead of persisting in storage
-      this.newChan("channels.history", res.channels[0].id) ;
+      this.newChan(this.state.view || (res.ok && res.channels[0].id)) ;
       this.setState( {
         teamInfo: res.team,
         chanList: res.channels,
+        userList: res.users,
         imList: res.ims,
         usersById: hashUserList(res.users),
         wssURL: res.url,
@@ -78,46 +78,67 @@ class SlackFeed extends React.Component {
     }
   }
 
-	newChan(method, viewId) {
-    const url = buildUrl(this.state.token, method, viewId);
+	newChan(e) {
+    if (!e.value) {
+      e = {
+        value: e,
+        apiMethod: "channels.history"
+      };
+    }
+    const url = buildUrl(this.state.token, e.apiMethod , e.value);
     httpDo(url, (err, res) => {
       if (err) return console.log(err);
-      console.log('newchan get', method, viewId);
-      console.log('newchan res', res);
       this.setState( {
         messageList: formatMessages(res.messages, this.state.usersById),
         chanGet: true,
-        viewId: viewId
+        view: e,
+        viewId: e.value
       } );
       updateStorage(this.state);
     } );
 	}
 
+  newTeam() {
+      chrome.storage.local.clear();
+      window.location.href = authURL;
+  }
+
+  slackSite() {
+    return (
+      <a href={"https://www." + this.state.teamInfo.name + ".slack.com"}>
+        Visit on Slack Website
+      </a>
+    );
+  }
 	render() {
     const st = this.state;
+    const newTeam = <button onClick={ this.newTeam }>New Team</button>;
     const signIn =
-    <a href= { authURL }>
+    <a href= {authURL }>
       <img src="https://api.slack.com/img/sign_in_with_slack.png" />
     </a>;
-    return (st.chanGet && st.mainGet && st.token) ?
-      ( <section>
-          <TeamSite teamName={ st.teamInfo.name } authURL={ authURL } />
+    if (st.chanGet && st.mainGet && st.token) {
+      return (
+        <section>
+          {newTeam} { this.slackSite() }
           <ChannelInfo
             teamInfo={ st.teamInfo }
             chanList={ st.chanList }
             imList={ st.imList }
-            viewId={ st.viewId}
+            viewId={ st.view.value}
             usersById={ st.usersById }
             onChange={ this.newChan } />
           <PostMessage
             token={ st.token }
-            viewId={ st.viewId } />
+            viewId={ st.view.value } />
           <MessageList
             messageList={ st.messageList } />
           <Websocket url={ st.wssURL }
   					onMessage={ this.handleWss } />
-        </section> ) :
-        ( <section>{ signIn }</section> );
+        </section> );
+    } else {
+      return( <section>{ signIn }</section> );
+    }
   }
 }
 
