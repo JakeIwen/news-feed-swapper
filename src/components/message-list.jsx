@@ -14,7 +14,7 @@ const renderMessage = (message, index) => {
 	return message.userName ?
 		<MessageItem
 			className="messageItem"
-			date={message.showDate && message.date}
+			date={message.date}
 			key={index}
 			ts={message.ts}
 			user={message.userName}

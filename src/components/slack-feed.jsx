@@ -6,20 +6,17 @@ const ChannelInfo = require('./channel-info');
 const TeamSite = require('./team-site');
 const token_info = require('../info');
 
-const authURL = "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client";
+
 import Websocket from 'react-websocket';
 import 'react-select/dist/react-select.css';
-import { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken } from './helper-functions';
+import { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken, teamSelector } from './helper-functions';
 
 class SlackFeed extends React.Component {
   constructor() {
     super();
 
     this.state =  {
-      view: false,
-      viewId: "",
-      chanGet: false,
-      mainGet: false,
+      viewId: false,
       usersById: {},
       token: false
     };
@@ -33,8 +30,6 @@ class SlackFeed extends React.Component {
 
   componentDidMount() {
     chrome.storage.local.get(null, (localData) => {
-      localData.mainGet = false;
-      localData.chanGet = false;
       this.setState(localData);
       console.log('STORAGE LOCAL DATA:', localData);
       const accessCode = window.location.href.match(/(\d{12}\.){2}.*(?=&)/g);
@@ -42,11 +37,15 @@ class SlackFeed extends React.Component {
         this.querySlackAPI(this.state.token);
       else if (accessCode)
         getToken(token_info, accessCode, this.querySlackAPI);
+      else
+        teamSelector();
     } );
   }
 
   handleWss(data) {
 		const result = JSON.parse(data);
+    console.log('WSS', result);
+
 		if (result.type == "message" && result.channel == this.state.viewId) {
       this.setState( { messageList: newMsg.concat(this.state.messageList) } );
 			const newMsg = formatMessages([result], this.state.usersById, this.state.messageList);
@@ -65,30 +64,23 @@ class SlackFeed extends React.Component {
       chrome.storage.local.clear();
     } else {
       //TODO currently defaults to main channel instead of persisting in storage
-      this.newChan("channels.history", res.channels[0].id) ;
-      this.setState( {
-        teamInfo: res.team,
-        chanList: res.channels,
-        imList: res.ims,
-        usersById: hashUserList(res.users),
-        wssURL: res.url,
-        mainGet: true
-      } );
-      updateStorage(this.state);
+      this.newChan("channels.history", res.channels[0].id, res) ;
     }
   }
 
-	newChan(method, viewId) {
+	newChan(method, viewId, newRtm) {
     const url = buildUrl(this.state.token, method, viewId);
     httpDo(url, (err, res) => {
       if (err) return console.log(err);
-      console.log('newchan get', method, viewId);
+      console.log('newchan get', method, viewId, newRtm);
       console.log('newchan res', res);
+      let rtm = newRtm || this.state.rtm;
       this.setState( {
-        messageList: formatMessages(res.messages, this.state.usersById),
-        chanGet: true,
-        viewId: viewId
-      } );
+        history: res,
+        rtm: rtm,
+        viewId: viewId,
+        usersById: hashUserList(rtm.users)
+       } );
       updateStorage(this.state);
     } );
 	}
@@ -96,29 +88,30 @@ class SlackFeed extends React.Component {
 	render() {
     const st = this.state;
     const signIn =
-    <a href= { authURL }>
+    <a href= { "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client" }>
       <img src="https://api.slack.com/img/sign_in_with_slack.png" />
     </a>;
-    return (st.chanGet && st.mainGet && st.token) ?
+    return (st.rtm && st.rtm.ok && st.history && st.history.ok && st.token && st.viewId && st.usersById) ?
       ( <section>
-          <TeamSite teamName={ st.teamInfo.name } authURL={ authURL } />
+          <TeamSite teamName={ st.rtm.team.name } />
           <ChannelInfo
-            teamInfo={ st.teamInfo }
-            chanList={ st.chanList }
-            imList={ st.imList }
-            viewId={ st.viewId}
+            teamInfo={ st.rtm.team }
+            chanList={ st.rtm.channels }
+            imList={ st.rtm.ims }
+            viewId={ st.viewId }
             usersById={ st.usersById }
-            onChange={ this.newChan } />
+            onChange={ this.newChan }
+             />
           <PostMessage
             token={ st.token }
             viewId={ st.viewId } />
           <MessageList
-            messageList={ st.messageList } />
-          <Websocket url={ st.wssURL }
-  					onMessage={ this.handleWss } />
+            messageList={ formatMessages(st.history.messages, st.usersById) } />
         </section> ) :
         ( <section>{ signIn }</section> );
   }
 }
+
+//
 
 module.exports = SlackFeed;

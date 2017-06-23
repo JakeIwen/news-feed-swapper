@@ -1,10 +1,10 @@
 const React = require( 'react' );
-
+import { teamSelector } from './helper-functions';
 
 const TeamSite = props => {
 	return (
     <div>
-      <button onClick={ teamSelector.bind(null, props.authURL) }>
+      <button onClick={ teamSelector.bind(null) }>
         New Team
       </button>
       <a href={"https://www." + props.teamName + ".slack.com"}>
@@ -12,11 +12,6 @@ const TeamSite = props => {
       </a>
   	</div>
   );
-};
-
-const teamSelector = (authURL) => {
-  chrome.storage.local.clear();
-  window.location.href = authURL;
 };
 
 module.exports = TeamSite;

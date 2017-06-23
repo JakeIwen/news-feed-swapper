@@ -11,25 +11,23 @@ export function updateStorage(data) {
 
 export function hashUserList(userList) {
   const usersById = {};
+  console.log('hash');
   for (let i = 0; i < userList.length; i++)
     usersById[userList[i].id] = userList[i];
   return usersById;
 }
 
-export function formatMessages(newList, usersById, existingList) {
-  let lastDate = (newList.length == 1) ? existingList[0].date : null;
-  for (let i = 0; i < newList.length; i++) {
-    newList[i].text = htmlFormat(slackdown.parse(newList[i].text));
-    newList[i].date = moment.unix(newList[i].ts).format('MMMM Do YYYY');
-    newList[i].userName = newList[i].user ? usersById[newList[i].user].name : null;
-    newList[i].profile = newList[i].user ? usersById[newList[i].user].profile : null;
-    if (newList[i].date != lastDate) {
-      newList[i].showDate = true;
-      lastDate = newList[i].date;
-    }
-  }
-  return newList;
-}
+export const formatMessages = (newList, usersById, existingList) =>
+  newList.map( (msg) => (
+      {
+        text: htmlFormat(slackdown.parse(msg.text)),
+        date: moment.unix(msg.ts).format('MMMM Do YYYY'),
+        userName: msg.user ? usersById[msg.user].name : null,
+        profile: msg.user ? usersById[msg.user].profile : null,
+      }
+    )
+  );
+
 
 export function htmlFormat(html) {
  const htmlObj = {__html: html};
@@ -71,9 +69,11 @@ export function getToken(token_info, code, callback) {
     callback(res.access_token);
   });
 }
-//
-// export function modePusher()
-//
+
+export function teamSelector() {
+  chrome.storage.local.clear();
+  window.location.href = "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client";
+}
 
 
 // function replaceTextElements(text, ts, usersByID) {
