@@ -44,11 +44,13 @@ class SlackFeed extends React.Component {
 
   handleWss(data) {
 		const result = JSON.parse(data);
-    console.log('WSS', result);
+    console.log('WSyjntyjnmyS', result);
+
+    const history = this.state.history;
+    history.messages.push([result]);
 
 		if (result.type == "message" && result.channel == this.state.viewId) {
-      this.setState( { messageList: newMsg.concat(this.state.messageList) } );
-			const newMsg = formatMessages([result], this.state.usersById, this.state.messageList);
+      this.setState( { history: history } );
 		}
 	}
 
@@ -107,6 +109,8 @@ class SlackFeed extends React.Component {
             viewId={ st.viewId } />
           <MessageList
             messageList={ formatMessages(st.history.messages, st.usersById) } />
+          <Websocket url={ st.rtm.url }
+            onMessage={ this.handleWss } />
         </section> ) :
         ( <section>{ signIn }</section> );
   }
