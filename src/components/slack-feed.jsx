@@ -28,7 +28,6 @@ class SlackFeed extends React.Component {
     this.newChan = this.newChan.bind(this);
     this.querySlackAPI = this.querySlackAPI.bind(this);
     this.handleWss = this.handleWss.bind(this);
-
   }
 
   componentDidMount() {
@@ -47,11 +46,9 @@ class SlackFeed extends React.Component {
 
   handleWss(data) {
 		const result = JSON.parse(data);
-		console.log('WSS DATA', result);
 		if (result.type == "message" && result.channel == this.state.viewId) {
 			const newMsg = formatMessages([result], this.state.usersById, this.state.messageList);
 			this.setState( { messageList: newMsg.concat(this.state.messageList) } );
-			console.log('new messagelist', this.state.messageList);
 		}
 	}
 
@@ -88,7 +85,6 @@ class SlackFeed extends React.Component {
     const url = buildUrl(this.state.token, e.apiMethod , e.value);
     httpDo(url, (err, res) => {
       if (err) return console.log(err);
-      console.log('new messages res', res);
       this.setState( {
         messageList: formatMessages(res.messages, this.state.usersById),
         chanGet: true,
@@ -96,7 +92,7 @@ class SlackFeed extends React.Component {
         viewId: e.value
       } );
       updateStorage(this.state);
-    });
+    } );
 	}
 
   newTeam() {
