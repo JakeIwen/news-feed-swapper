@@ -10,7 +10,6 @@ const PostMessage = props => (
 
 const handleChange = (event, token, viewId) => {
   if (event.key == "Enter" && !event.shiftKey) {
-    console.log('VALUE', event.target.value);
     event.preventDefault();
     postToSlack(event.target.value, token, viewId);
     event.target.value = '';
@@ -20,7 +19,7 @@ const handleChange = (event, token, viewId) => {
 const postToSlack = (postText, token, viewId) => {
   const postUrl = buildUrl(token, 'chat.postMessage', viewId, postText, true);
   httpDo(postUrl, (err, res) => {
-    if(err || !res.ok) console.log('post fail', res.error || err);
+    if(err || !res.ok) return console.log('post fail', res.error || err);
   });
 };
 

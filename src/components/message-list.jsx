@@ -10,8 +10,8 @@ const renderMessageList = messageList => {
 	return messageList.map( (message, index) => renderMessage(message, index) );
 };
 
-const renderMessage = (message, index) => {
-	return message.userName ?
+const renderMessage = (message, index) => (
+	message.userName ?
 		<MessageItem
 			className="messageItem"
 			date={message.date}
@@ -22,7 +22,7 @@ const renderMessage = (message, index) => {
 			profile={message.profile}
 			attachments={message.attachments}
 		/> :
-		<p key={index}>unknown element</p>;
-};
+		<p key={index}>unknown element</p>
+);
 
 module.exports = MessageList;

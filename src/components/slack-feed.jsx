@@ -31,8 +31,9 @@ class SlackFeed extends React.Component {
   componentDidMount() {
     chrome.storage.local.get(null, (localData) => {
       this.setState(localData);
-      console.log('STORAGE LOCAL DATA:', localData);
+      console.log('LOCAL DATA:', localData);
       const accessCode = window.location.href.match(/(\d{12}\.){2}.*(?=&)/g);
+
       if (this.state.token)
         this.querySlackAPI(this.state.token);
       else if (accessCode)
@@ -44,14 +45,8 @@ class SlackFeed extends React.Component {
 
   handleWss(data) {
 		const result = JSON.parse(data);
-    console.log('WSyjntyjnmyS', result);
-
-    const history = this.state.history;
-    history.messages.push([result]);
-
-		if (result.type == "message" && result.channel == this.state.viewId) {
-      this.setState( { history: history } );
-		}
+		if (result.type == "message" && result.channel == this.state.viewId)
+      this.setState( { messages: [result].concat(this.state.messages) } );
 	}
 
   querySlackAPI(token) {
@@ -65,8 +60,9 @@ class SlackFeed extends React.Component {
       console.log('error', res.error || err);
       chrome.storage.local.clear();
     } else {
-      //TODO currently defaults to main channel instead of persisting in storage
-      this.newChan("channels.history", res.channels[0].id, res) ;
+      //TODO currently defaults to previously selected channels but not ims
+      this.newChan(this.state.method || "channels.history",
+        this.state.viewId || res.channels[0].id, res) ;
     }
   }
 
@@ -74,15 +70,15 @@ class SlackFeed extends React.Component {
     const url = buildUrl(this.state.token, method, viewId);
     httpDo(url, (err, res) => {
       if (err) return console.log(err);
-      console.log('newchan get', method, viewId, newRtm);
-      console.log('newchan res', res);
       let rtm = newRtm || this.state.rtm;
       this.setState( {
-        history: res,
+        messages: res.messages,
         rtm: rtm,
         viewId: viewId,
-        usersById: hashUserList(rtm.users)
+        usersById: hashUserList(rtm.users),
+        apiMethod: method
        } );
+       //save locally for quick load times in the future
       updateStorage(this.state);
     } );
 	}
@@ -93,11 +89,11 @@ class SlackFeed extends React.Component {
     <a href= { "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client" }>
       <img src="https://api.slack.com/img/sign_in_with_slack.png" />
     </a>;
-    return (st.rtm && st.rtm.ok && st.history && st.history.ok && st.token && st.viewId && st.usersById) ?
+    return (st.rtm && st.rtm.ok && st.messages && st.token && st.viewId && st.usersById) ?
       ( <section>
           <TeamSite teamName={ st.rtm.team.name } />
           <ChannelInfo
-            teamInfo={ st.rtm.team }
+            teamName={ st.rtm.team.name }
             chanList={ st.rtm.channels }
             imList={ st.rtm.ims }
             viewId={ st.viewId }
@@ -108,14 +104,12 @@ class SlackFeed extends React.Component {
             token={ st.token }
             viewId={ st.viewId } />
           <MessageList
-            messageList={ formatMessages(st.history.messages, st.usersById) } />
+            messageList={ formatMessages(st.messages, st.usersById) } />
           <Websocket url={ st.rtm.url }
             onMessage={ this.handleWss } />
         </section> ) :
         ( <section>{ signIn }</section> );
   }
 }
-
-//
 
 module.exports = SlackFeed;

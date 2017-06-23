@@ -4,7 +4,7 @@ import { teamSelector } from './helper-functions';
 const TeamSite = props => {
 	return (
     <div>
-      <button onClick={ teamSelector.bind(null) }>
+      <button onClick={ teamSelector }>
         New Team
       </button>
       <a href={"https://www." + props.teamName + ".slack.com"}>

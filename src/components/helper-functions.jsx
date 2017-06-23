@@ -1,80 +1,75 @@
 const React = require( 'react' );
-const reactReplace = require('react-string-replace');
+// const reactReplace = require('react-string-replace');
 const moment = require('moment');
 const request = require('request');
 const slackdown = require('slackdown');
 
-export function updateStorage(data) {
-  chrome.storage.local.set( data );
-  console.log('storage updated', data);
-}
+const updateStorage = data => chrome.storage.local.set( data );
 
-export function hashUserList(userList) {
+const hashUserList = userList => {
   const usersById = {};
   console.log('hash');
-  for (let i = 0; i < userList.length; i++)
-    usersById[userList[i].id] = userList[i];
+  userList.forEach( (user) => ( usersById[user.id] = user ) );
   return usersById;
-}
+};
 
-export const formatMessages = (newList, usersById, existingList) =>
-  newList.map( (msg) => (
-      {
-        text: htmlFormat(slackdown.parse(msg.text)),
+const formatMessages = (newList, usersById) => {
+  return newList.map( (msg) => (
+      { text: htmlFormat(slackdown.parse(msg.text)),
         date: moment.unix(msg.ts).format('MMMM Do YYYY'),
         userName: msg.user ? usersById[msg.user].name : null,
-        profile: msg.user ? usersById[msg.user].profile : null,
-      }
+        profile: msg.user ? usersById[msg.user].profile : null }
     )
   );
+};
 
-
-export function htmlFormat(html) {
+const htmlFormat = html => {
  const htmlObj = {__html: html};
  return ( <div dangerouslySetInnerHTML={ htmlObj }></div> );
-}
+};
 
-function createMedia (match, ts) {
-  let ret = null;
-  if (match.match(/vimeo|youtube|youtu\.be/g))
-    ret =  <iframe key={ts} className="slackFrame" src={match.replace("watch?v=", "/embed/").replace("m.youtube", "youtube")} />;
-  else if (match.match(/\.jpg|\.png|\.gif|\.bmp|\.svg/g))
-    ret =  <img key={ts} className="slackPic" src={match} />;
-  else
-    ret = <a href={match} key={ts}>{match}</a>;
-  return ret;
-}
-
-export function httpDo(url, callback) {
+const httpDo = (url, callback) => {
   const options = {
     url :  url,
     json : true
   };
-  request(options, (err, res, body) => callback(err, body));
-}
+  request(options, (err, res, body) => callback(err, body) );
+};
 
-export function buildUrl(token, method, arg, text, as_user) {
-  arg = (arg) ? ('&channel=' + arg) : '';
-  text = (text) ? ('&text=' + text) : '';
-  as_user = (as_user) ? ('&as_user=true') : '';
-  const query = 'https://slack.com/api/' + method + "?token=" + token + arg + text + as_user + '&pretty=1';
+const buildUrl = (token, method, arg, text, as_user) => {
+  let query = 'https://slack.com/api/' + method + "?token=" + token;
+  query += (arg) ? ('&channel=' + arg) : '';
+  query += (text) ? ('&text=' + text) : '';
+  query += (as_user) ? ('&as_user=true') : '';
+  query += '&pretty=1';
   return encodeURI(query);
-}
+};
 
-export function getToken(token_info, code, callback) {
-  httpDo(atob(token_info) + code, function (err, res) {
-    console.log('token', atob(token_info) + code);
-    if(err || !res.ok) console.log('oauth access failed', res.error || err);
+const getToken = (token_info, code, callback) => {
+  httpDo(atob(token_info) + code, (err, res) => {
+    if(err || !res.ok) return console.log('oauth access failed', res.error || err);
     //send user token to callback function
     callback(res.access_token);
   });
-}
+};
 
-export function teamSelector() {
+const teamSelector = () => {
   chrome.storage.local.clear();
   window.location.href = "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client";
-}
+};
 
+export { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, htmlFormat, getToken, teamSelector } ;
+
+// const createMedia = (match, ts) => {
+//   let ret = null;
+//   if (match.match(/vimeo|youtube|youtu\.be/g))
+//     ret =  <iframe key={ts} className="slackFrame" src={match.replace("watch?v=", "/embed/").replace("m.youtube", "youtube")} />;
+//   else if (match.match(/\.jpg|\.png|\.gif|\.bmp|\.svg/g))
+//     ret =  <img key={ts} className="slackPic" src={match} />;
+//   else
+//     ret = <a href={match} key={ts}>{match}</a>;
+//   return ret;
+// };
 
 // function replaceTextElements(text, ts, usersByID) {
 //   const self = this;
