@@ -1,5 +1,4 @@
 const React = require('react');
-const async = require('async');
 const MessageList = require('./message-list');
 const PostMessage = require('./postMessage');
 const ChannelInfo = require('./channel-info');
@@ -14,17 +13,12 @@ class SlackFeed extends React.Component {
   constructor() {
     super();
 
-    this.state =  {
-      viewId: false,
-      usersById: {},
-      token: false
-    };
+    this.state =  { ok: false };
 
     this.componentDidMount = this.componentDidMount.bind(this);
     this.newChan = this.newChan.bind(this);
     this.querySlackAPI = this.querySlackAPI.bind(this);
     this.handleWss = this.handleWss.bind(this);
-    this.handleResponse = this.handleResponse.bind(this);
   }
 
   componentDidMount() {
@@ -45,23 +39,21 @@ class SlackFeed extends React.Component {
   handleWss(data) {
 		const result = JSON.parse(data);
 		if (result.type == "message" && result.channel == this.state.viewId)
-      console.log( "WSS SET STEAT", this.setState( { messages: [result].concat(this.state.messages) } ));
+      this.setState( { messages: [result].concat(this.state.messages) } );
 	}
 
   querySlackAPI(token) {
     !this.state.token && this.setState( { token: token } );
-    httpDo(buildUrl(token, "rtm.start"), (err, res) => this.handleResponse(err, res));
-	}
-
-  handleResponse(err, res) {
-    console.log('res', res);
-    if(err || !res.ok) {
-      console.log('error; clearing local storage now', res.error || err);
-      chrome.storage.local.clear();
-    } else {
-      //TODO currently defaults to previously selected channels but not ims
-      this.newChan("channels.history", res.channels[0].id, res) ;
-    }
+    httpDo( buildUrl(token, "rtm.start"), (err, res) => {
+      console.log('res', res);
+      if(err || !res.ok) {
+        console.log('error; clearing local storage now', res.error || err);
+        chrome.storage.local.clear();
+      } else {
+        //TODO currently defaults to previously selected channels but not ims
+        this.newChan("channels.history", res.channels[0].id, res) ;
+      }
+    } );
   }
 
 	newChan(method, viewId, newRtm) {
@@ -74,7 +66,8 @@ class SlackFeed extends React.Component {
         rtm: rtm,
         viewId: viewId,
         usersById: hashUserList(rtm.users),
-        apiMethod: method
+        apiMethod: method,
+        ok: true
        } );
        //save locally for quick load times in the future
       updateStorage(this.state);
@@ -87,7 +80,7 @@ class SlackFeed extends React.Component {
     <a href= { "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client" }>
       <img src="https://api.slack.com/img/sign_in_with_slack.png" />
     </a>;
-    return (st.rtm && st.rtm.ok && st.messages && st.token && st.viewId && st.usersById) ?
+    return (st.ok) ?
       ( <section>
           <TeamSite teamName={ st.rtm.team.name } />
           <ChannelInfo
@@ -103,7 +96,8 @@ class SlackFeed extends React.Component {
             viewId={ st.viewId } />
           <MessageList
             messageList={ formatMessages(st.messages, st.usersById) } />
-          <Websocket url={ st.rtm.url }
+          <Websocket
+            url={ st.rtm.url }
             onMessage={ this.handleWss.bind(this) } />
         </section> ) :
         ( <section>{ signIn }</section> );

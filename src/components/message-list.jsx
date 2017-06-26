@@ -3,7 +3,7 @@ const MessageItem = require('./message-item');
 
 const MessageList = props => {
 	const messages = renderMessageList(props.messageList);
-	return ( <div>{messages}</div> );
+	return ( <div>{ messages }</div> );
 };
 
 const renderMessageList = messageList => {

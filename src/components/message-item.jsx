@@ -22,9 +22,9 @@ const MessageItem = props => {
 };
 
 const embed = item => {
-	if (item && item[0] && item[0].video_html) {
+	console.log('embed attachment', item);
+	if (item && item[0] && item[0].video_html)
 		return htmlFormat(item[0].video_html.replace('autoplay=1', 'autoplay=0'));
-	}
 };
 
 const renderHoverPopup = profile => (

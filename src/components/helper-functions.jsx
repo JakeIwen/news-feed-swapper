@@ -13,15 +13,16 @@ const hashUserList = userList => {
   return usersById;
 };
 
-const formatMessages = (newList, usersById) => {
-  return newList.map( (msg) => (
-      { text: replaceTextElements(msg.text, msg.ts, usersById ),
-        date: moment.unix(msg.ts).format('MMMM Do YYYY'),
+const formatMessages = (newList, usersById) =>
+  newList.map( (msg, i, list) => {
+    console.log("msg.ts", msg.ts, list[i-1] && list[i-1].ts);
+      return { text: replaceTextElements(msg.text, msg.ts, usersById),
+        date: moment.unix((list[i-1] && (msg.ts!=list[i-1].ts)) ? msg.ts : null ).format('MMMM Do YYYY'),
         userName: msg.user ? usersById[msg.user].name : null,
-        profile: msg.user ? usersById[msg.user].profile : null }
-    )
+        profile: msg.user ? usersById[msg.user].profile : null };
+    }
   );
-};
+
 
 const htmlFormat = html => {
  const htmlObj = {__html: html};
@@ -45,13 +46,12 @@ const buildUrl = (token, method, arg, text, as_user) => {
   return encodeURI(query);
 };
 
-const getToken = (token_info, code, callback) => {
-  httpDo(atob(token_info) + code, (err, res) => {
+const getToken = (token_info, code, callback) =>
+  httpDo( atob(token_info) + code, (err, res) => {
     if(err || !res.ok) return console.log('oauth access failed', res.error || err);
     //send user token to callback function
     callback(res.access_token);
-  });
-};
+  } );
 
 const teamSelector = () => {
   chrome.storage.local.clear();
@@ -59,14 +59,14 @@ const teamSelector = () => {
 };
 
 
-const createMedia = (match, ts) => {
+const createMedia = (match, i) => {
   let ret = null;
   if (match.match(/vimeo|youtube|youtu\.be/g))
-    ret =  <iframe key={ts} className="slackFrame" src={match.replace("watch?v=", "/embed/").replace("m.youtube", "youtube")} />;
+    ret =  <iframe key={i} className="slackFrame" src={match.replace("watch?v=", "/embed/").replace("m.youtube", "youtube")} />;
   else if (match.match(/\.jpg|\.png|\.gif|\.bmp|\.svg/g))
-    ret =  <img key={ts} className="slackPic" src={match} />;
+    ret =  <img key={i} className="slackPic" src={match} />;
   else
-    ret = <a href={match} key={ts}>{match}</a>;
+    ret = <a href={match} key={i}>{match}</a>;
   return ret;
 };
 
@@ -76,9 +76,7 @@ const replaceTextElements = (text, ts, usersById) => {
   foo = foo.replace(/@........./g, match => usersById[match.substring(1,10)].name);
   foo = foo.replace(/<.+>/g, match => match.replace(/<|>/g, ""));
   foo = foo.replace(/@([A-Z]|\d){8}/g, match => match.replace("@", ""));
-    console.log('foo4', foo);
-  // console.log('text', [text]);
-  return reactReplace(foo,  url, (match, i) => createMedia(match, ts) );
+  return reactReplace(foo,  url, (match, i) => createMedia(match, i) );
 };
 
 export { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, htmlFormat, getToken, teamSelector } ;
