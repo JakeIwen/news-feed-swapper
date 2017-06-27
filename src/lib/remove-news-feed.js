@@ -17,7 +17,7 @@ const removeChildren = ( node ) => {
 	while ( node.firstChild ) {
 		node.removeChild( node.firstChild );
 	}
-}
+};
 
 export default function() {
 	document.querySelectorAll( elementsToRemove ).forEach( removeNode );

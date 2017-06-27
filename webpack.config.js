@@ -27,7 +27,6 @@ module.exports = {
 	context: __dirname + '/src',
 	entry: {
 		eradicate: './eradicate',
-		intercept: './intercept',
 	},
 	resolve: {
 		alias: {

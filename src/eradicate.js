@@ -1,5 +1,5 @@
 // Load any browser specific code. This is selected by webpack
-var browser = require( 'browser-specific' );
+const browser = require( 'browser-specific' );
 
 // Include the stylesheets
 require( './eradicate.css' );
@@ -9,15 +9,11 @@ import injectUI, { isAlreadyInjected } from './lib/inject-ui';
 
 // This delay ensures that the elements have been created by Facebook's
 // scripts before we attempt to replace them
-var eradicateRetry = setInterval(function(){
+const eradicateRetry = setInterval( () => {
 		// Don't do anything if the FB UI hasn't loaded yet
-		var streamContainer = document.getElementById('stream_pagelet');
-		if ( streamContainer == null ) {
-			return;
-		}
+		const streamContainer = document.getElementById('stream_pagelet');
+		if ( streamContainer == null ) return;
 		removeNewsFeed();
-		// Add News Feed Swapper quote/info panel
-		if ( ! isAlreadyInjected() ) {
-			injectUI( streamContainer );
-		}
+		// Add Slack Feed
+		if ( ! isAlreadyInjected() ) injectUI( streamContainer );
 }, 1000);

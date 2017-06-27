@@ -56,19 +56,19 @@ class SlackFeed extends React.Component {
     } );
   }
 
-	newChan(method, viewId, newRtm) {
-    const url = buildUrl(this.state.token, method, viewId);
+	newChan(apiMethod, viewId, newRtm) {
+    const url = buildUrl(this.state.token, apiMethod, viewId);
     httpDo(url, (err, res) => {
       if (err) return console.log(err);
-      let rtm = newRtm || this.state.rtm;
+      const rtm = newRtm || this.state.rtm;
       console.log('history res', res);
       this.setState( {
-        messages: res.messages,
-        rtm: rtm,
-        viewId: viewId,
         usersById: this.state.usersById || hashUserList([...rtm.users, ...rtm.bots]),
-        apiMethod: method,
-        ok: true
+        messages: res.messages,
+        ok: true,
+        rtm,
+        viewId,
+        apiMethod
        } );
        //save locally for quick load times in the future
       updateStorage(this.state);

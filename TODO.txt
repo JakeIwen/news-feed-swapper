@@ -1,3 +1,0 @@
-Remove un necessary NF Eradicator elements
-dont display name if same user
-unfurl

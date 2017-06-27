@@ -34,20 +34,16 @@
   },
   "dependencies": {
     "@slack/events-api": "^1.0.1",
-    "async": "^2.1.5",
     "espree": "^3.4.0",
     "json-loader": "^0.5.4",
     "lodash": "^3.10.1",
     "moment": "^2.17.1",
     "rc-tooltip": "^3.4.2",
-    "react-player": "^0.18.0",
     "react-select": "^1.0.0-rc.3",
     "react-string-replace": "^0.4.0",
     "react-textselect": "^0.2.0",
     "react-websocket": "^1.1.7",
-    "request": "^2.79.0",
-    "slackdown": "^0.1.1",
-    "ts-loader": "^0.8.2"
+    "request": "^2.79.0"
   },
   "scripts": {
     "build": "rm -r build; webpack --config webpack.config.js",
