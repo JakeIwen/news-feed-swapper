@@ -61,7 +61,7 @@ module.exports = {
 			{
 				test: /\.tsx?$/,
 				exclude: /(node_modules|bower_components)/,
-				loader: 'babel-loader!ts-loader',
+				loader: 'babel-loader',
 			},
 			{
 			  test: /\.(jpg|png|svg)$/,

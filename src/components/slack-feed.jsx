@@ -1,6 +1,6 @@
 const React = require('react');
 const MessageList = require('./message-list');
-const PostMessage = require('./postMessage');
+const PostMessage = require('./post-message');
 const ChannelInfo = require('./channel-info');
 const TeamSite = require('./team-site');
 const token_info = require('../info');
@@ -38,6 +38,7 @@ class SlackFeed extends React.Component {
 
   handleWss(data) {
 		const result = JSON.parse(data);
+    console.log('WSS:', result);
 		if (result.type == "message" && result.channel == this.state.viewId)
       this.setState( { messages: [result].concat(this.state.messages) } );
 	}
