@@ -6,25 +6,19 @@ const MessageList = props => {
 	return ( <div>{ messages }</div> );
 };
 
-const renderMessageList = messageList => {
-	return messageList.map( (message, index) =>
-		 renderMessage(message, index) );
-};
+const renderMessageList = messageList => (
+  messageList.map( (message, index) => renderMessage(message, index) )
+);
 
-const renderMessage = (message, index) => {
-	return (message.userName ?
-		<MessageItem
-			className="messageItem"
-			date={message.date}
-			key={index}
-			ts={message.ts}
-			user={message.userName}
-			text={message.text}
-			url={message.url}
-			profile={message.profile}
-			attachments={message.attachments}
-		/> :
-		<p key={index}>unknown element</p>) ;
-};
+const renderMessage = (message, index) => (
+	<MessageItem
+		className="messageItem"
+		date={message.date}
+		key={index}
+		user={message.userName || "unknown user"}
+		text={message.text}
+		profile={message.profile}
+	/>
+);
 
 module.exports = MessageList;

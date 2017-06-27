@@ -30,7 +30,7 @@ const ChannelInfo = props => {
 };
 
 const newView = (newChanFn, e) =>
-( typeof newChanFn === 'function' && e && newChanFn(e.apiMethod, e.value) );
+( typeof newChanFn === 'function' && newChanFn(e.apiMethod, e.value) );
 
 const selectView = (msgList, usersById) => (
 	msgList.map( (msg) => (

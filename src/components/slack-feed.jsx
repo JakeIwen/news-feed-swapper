@@ -45,13 +45,13 @@ class SlackFeed extends React.Component {
   querySlackAPI(token) {
     !this.state.token && this.setState( { token: token } );
     httpDo( buildUrl(token, "rtm.start"), (err, res) => {
-      console.log('res', res);
+      console.log('rtm res', res);
       if(err || !res.ok) {
         console.log('error; clearing local storage now', res.error || err);
         chrome.storage.local.clear();
       } else {
-        //TODO currently defaults to previously selected channels but not ims
-        this.newChan("channels.history", res.channels[0].id, res) ;
+        //updates message list from local storage'sselected channel
+        this.newChan(this.state.apiMethod || "channels.history", this.state.viewId || res.channels[0].id, res) ;
       }
     } );
   }
@@ -61,11 +61,12 @@ class SlackFeed extends React.Component {
     httpDo(url, (err, res) => {
       if (err) return console.log(err);
       let rtm = newRtm || this.state.rtm;
+      console.log('history res', res);
       this.setState( {
         messages: res.messages,
         rtm: rtm,
         viewId: viewId,
-        usersById: hashUserList(rtm.users),
+        usersById: this.state.usersById || hashUserList([...rtm.users, ...rtm.bots]),
         apiMethod: method,
         ok: true
        } );
@@ -77,9 +78,9 @@ class SlackFeed extends React.Component {
 	render() {
     const st = this.state;
     const signIn =
-    <a href= { "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client" }>
-      <img src="https://api.slack.com/img/sign_in_with_slack.png" />
-    </a>;
+      <a href= { "https://slack.com/oauth/authorize?client_id=148278991843.147671805249&scope=client" }>
+        <img src="https://api.slack.com/img/sign_in_with_slack.png" />
+      </a>;
     return (st.ok) ?
       ( <section>
           <TeamSite teamName={ st.rtm.team.name } />
@@ -100,7 +101,7 @@ class SlackFeed extends React.Component {
             url={ st.rtm.url }
             onMessage={ this.handleWss.bind(this) } />
         </section> ) :
-        ( <section>{ signIn }</section> );
+      ( <section>{ signIn }</section> );
   }
 }
 

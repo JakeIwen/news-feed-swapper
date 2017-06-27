@@ -2,7 +2,6 @@ const React = require( 'react' );
 const reactReplace = require('react-string-replace');
 const moment = require('moment');
 const request = require('request');
-const slackdown = require('slackdown');
 
 const updateStorage = data => chrome.storage.local.set( data );
 
@@ -14,24 +13,17 @@ const hashUserList = userList => {
 };
 
 const formatMessages = (newList, usersById) =>
-  newList.map( (msg, i, list) => {
-    console.log("msg.ts", msg.ts, list[i-1] && list[i-1].ts);
-      return { text: replaceTextElements(msg.text, msg.ts, usersById),
-        date: moment.unix((list[i-1] && (msg.ts!=list[i-1].ts)) ? msg.ts : null ).format('MMMM Do YYYY'),
-        userName: msg.user ? usersById[msg.user].name : null,
-        profile: msg.user ? usersById[msg.user].profile : null };
-    }
+  newList.map( (msg, i, list) => (
+       { text: replaceTextElements(msg.text, msg.ts, usersById),
+        date: moment.unix(msg.ts).format('MMMM Do YYYY'),
+        userName: msg.username || usersById[msg.user].name,
+        profile: msg.user ? usersById[msg.user].profile : null }
+    )
   );
-
-
-const htmlFormat = html => {
- const htmlObj = {__html: html};
- return ( <div dangerouslySetInnerHTML={ htmlObj }></div> );
-};
 
 const httpDo = (url, callback) => {
   const options = {
-    url :  url,
+    url,
     json : true
   };
   request(options, (err, res, body) => callback(err, body) );
@@ -72,11 +64,12 @@ const createMedia = (match, i) => {
 
 const replaceTextElements = (text, ts, usersById) => {
   const url = /([^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/gi;
-  let foo = text.replace(/@.........\|/g , '');
-  foo = foo.replace(/@........./g, match => usersById[match.substring(1,10)].name);
-  foo = foo.replace(/<.+>/g, match => match.replace(/<|>/g, ""));
-  foo = foo.replace(/@([A-Z]|\d){8}/g, match => match.replace("@", ""));
-  return reactReplace(foo,  url, (match, i) => createMedia(match, i) );
+  const ret = text.replace(/@.........\|/g , '')
+    .replace("http:" , 'https:')
+    .replace(/@........./g, match => usersById[match.substring(1,10)].name)
+    .replace(/<.+>/g, match => match.replace(/<|>/g, ""))
+    .replace(/@([A-Z]|\d){8}/g, match => match.replace("@", ""));
+  return reactReplace(ret,  url, (match, i) => createMedia(match, i) );
 };
 
-export { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, htmlFormat, getToken, teamSelector } ;
+export { buildUrl, httpDo, hashUserList, formatMessages, updateStorage, getToken, teamSelector } ;

@@ -1,31 +1,24 @@
 const React = require( 'react' );
 const Tooltip = require('rc-tooltip');
-import { htmlFormat } from './helper-functions';
 
-const MessageItem = props => {
-	const attachment = embed(props.attachments);
-	const overlay = renderHoverPopup(props.profile);
-	return (
-		<div>
-			<p className="date">{ props.date }</p>
-			<Tooltip
-				placement="right"
-				overlay={ overlay }
-				arrowContent={ <div className="rc-tooltip-arrow-inner"></div> }>
-				<a href="#" className="user">{ props.user }:</a>
-			</Tooltip>
-			<br />
-			{ props.text }
-			{ attachment }
-		</div>
-	);
-};
+const MessageItem = props => (
+	<div>
+		<p className="date">{ props.date }</p>
+		{ renderTooltip(props.profile, props.user) }
+		<br />
+		{ props.text }
+	</div>
+);
 
-const embed = item => {
-	console.log('embed attachment', item);
-	if (item && item[0] && item[0].video_html)
-		return htmlFormat(item[0].video_html.replace('autoplay=1', 'autoplay=0'));
-};
+const renderTooltip = (profile, user) => (
+	profile ? (
+		<Tooltip
+			placement="right"
+			overlay={ profile ? renderHoverPopup(profile) : <br />}
+			arrowContent={ <div className="rc-tooltip-arrow-inner"></div> }>
+			<a href="#" className="user">{ user }:</a>
+		</Tooltip> ) : ( <span className="user">{ user }:</span> )
+);
 
 const renderHoverPopup = profile => (
 	<div>
