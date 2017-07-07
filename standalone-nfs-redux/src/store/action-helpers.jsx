@@ -4,13 +4,13 @@ const React = require( 'react' );
 const moment = require('moment');
 const reactReplace = require('react-string-replace');
 
-const hashList = userList => {
+export const hashList = userList => {
   const usersById = {};
   userList.forEach( (user) => ( usersById[user.id] = user ) );
   return usersById;
 };
 
-const buildUrl = (token, method, arg, text, as_user) => {
+export const buildUrl = (token, method, arg, text, as_user) => {
   let query = 'https://slack.com/api/' + method + "?token=" + token;
   query += (arg) ? ('&channel=' + arg) : '';
   query += (text) ? ('&text=' + text) : '';
@@ -40,7 +40,7 @@ const replaceTextElements = (text, ts, usersById) => {
   return reactReplace(ret,  url, (match, i) => createMedia(match, i) );
 };
 
-const formatMessages = (newList, usersById=store.getState().usersById) =>
+export const formatMessages = (newList, usersById=store.getState().usersById) =>
   newList.map( (msg, i, list) => (
      { text: replaceTextElements(msg.text, msg.ts, usersById),
       date: moment.unix(msg.ts).format('MMMM Do YYYY'),
