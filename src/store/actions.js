@@ -28,7 +28,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var ActionTypes;
 (function (ActionTypes) {
-    ActionTypes[ActionTypes["HIDE_INFO_PANEL"] = 'HIDE_INFO_PANEL'] = "HIDE_INFO_PANEL";
+  ActionTypes[ActionTypes["HIDE_INFO_PANEL"] = 'HIDE_INFO_PANEL'] = "HIDE_INFO_PANEL";
+    ActionTypes[ActionTypes["WEBSOCKET_CONNECT"] = 'WEBSOCKET_CONNECT'] = "WEBSOCKET_CONNECT";
     ActionTypes[ActionTypes["SHOW_INFO_PANEL"] = 'SHOW_INFO_PANEL'] = "SHOW_INFO_PANEL";
     ActionTypes[ActionTypes["TOGGLE_SHOW_QUOTES"] = 'TOGGLE_SHOW_QUOTES'] = "TOGGLE_SHOW_QUOTES";
     ActionTypes[ActionTypes["TOGGLE_BUILTIN_QUOTES"] = 'TOGGLE_BUILTIN_QUOTES'] = "TOGGLE_BUILTIN_QUOTES";
@@ -47,6 +48,12 @@ function generateID() {
     }
     return key.substr(0, 16);
 }
+function webSocketConnect() {
+    return {
+        type: ActionTypes.WEBSOCKET_CONNECT
+    };
+}
+exports.webSocketConnect = webSocketConnect;
 function hideInfoPanel() {
     return {
         type: ActionTypes.HIDE_INFO_PANEL
@@ -109,21 +116,7 @@ function removeCurrentQuote() {
     };
 }
 exports.removeCurrentQuote = removeCurrentQuote;
-function hashUserList() {
-    return (dispatch, getState) => {
-        const state = getState();
-        dispatch({
-            type: ActionTypes.HASH_USER_LIST,
-            userList: state.userList,
-        });
-    };
-    var usersById = {};
-    console.log('usersById', usersById);
-    return {
-        type: ActionTypes.HASH_USER_LIST
-    };
-}
-exports.hashUserList = hashUserList;
+
 function selectNewQuote() {
     return (dispatch, getState) => {
         const state = getState();
