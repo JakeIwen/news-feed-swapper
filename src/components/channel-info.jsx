@@ -1,6 +1,7 @@
+import SlackLogo from './slack-logo';
+
 const React = require('react');
 const Select = require('react-select');
-const SlackLogo = require('./slack-logo');
 
 const ChannelInfo = props => (
 	<div className="chanInfo">
@@ -38,4 +39,4 @@ const selectView = (msgList, usersById) => (
 	) )
 );
 
-module.exports = ChannelInfo;
+export default ChannelInfo;

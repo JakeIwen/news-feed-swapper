@@ -1,5 +1,5 @@
+import MessageItem from './message-item';
 const React = require( 'react' );
-const MessageItem = require('./message-item');
 
 const MessageList = props => {
 	const messages = renderMessageList(props.messageList);
@@ -21,4 +21,4 @@ const renderMessage = (message, index) => (
 	/>
 );
 
-module.exports = MessageList;
+export default MessageList;

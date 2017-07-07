@@ -1,26 +1,23 @@
-const React = require('react');
-import { buildUrl, httpDo } from './helper-functions';
+import { connect } from 'react-redux';
+import { postMessage } from '../store/actions';
 
-const PostMessage = props => (
+const React = require('react');
+
+export const PostMessage = props => (
   <textarea
     className="postMessage"
     placeholder="Post to Slack..."
-    onKeyPress={ (e) => handleChange(e, props.token, props.viewId) } />
+    onKeyPress={ (e) => handleChange(e, props.channelId, props.postMessage) } />
 );
 
-const handleChange = (event, token, viewId) => {
-  if (event.key == "Enter" && !event.shiftKey) {
+const handleChange = (event,  channelId, postAction) => {
+  if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
-    postToSlack(event.target.value, token, viewId);
+    postAction(channelId, event.target.value);
     event.target.value = '';
   }
 };
 
-const postToSlack = (postText, token, viewId) => {
-  const postUrl = buildUrl(token, 'chat.postMessage', viewId, postText, true);
-  httpDo(postUrl, (err, res) => {
-    if(err || !res.ok) return console.log('post fail', res.error || err);
-  });
-};
+const mapDispatchToProps = { postMessage };
 
-module.exports = PostMessage;
+export default connect(null, mapDispatchToProps)(PostMessage);

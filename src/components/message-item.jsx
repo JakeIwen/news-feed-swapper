@@ -1,6 +1,5 @@
+import Tooltip from 'rc-tooltip';
 const React = require( 'react' );
-const Tooltip = require('rc-tooltip');
-
 const MessageItem = props => (
 	<div>
 		<p className="date">{ props.date }</p>
@@ -28,4 +27,4 @@ const renderHoverPopup = profile => (
 	</div>
 );
 
-module.exports = MessageItem;
+export default MessageItem;

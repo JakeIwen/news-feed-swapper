@@ -1,15 +1,15 @@
-const React = require('react');
-
+// import logo from '../../assets/slack-logo.png'
 import logo from '../../assets/slack-logo.png';
 
+const React = require('react');
 
 const SlackLogo = () => {
 	return (
 		<div className='logo'>
-			<img src={ logo } height='40' />
+			<img src={ logo } alt='slack-logo' height='40' />
 			<span>SlackFeed</span>
 		</div>
 	);
 };
 
-module.exports = SlackLogo;
+export default SlackLogo;

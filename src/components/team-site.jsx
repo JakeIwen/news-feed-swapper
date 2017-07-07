@@ -1,5 +1,5 @@
-const React = require( 'react' );
 import { teamSelector } from './helper-functions';
+const React = require( 'react' );
 
 const TeamSite = props => {
 	return (
@@ -14,4 +14,4 @@ const TeamSite = props => {
   );
 };
 
-module.exports = TeamSite;
+export default TeamSite;

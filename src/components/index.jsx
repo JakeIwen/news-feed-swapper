@@ -1,7 +1,14 @@
-const React = require( 'react' );
-const SlackFeed = require("./slack-feed");
+import React from  'react' ;
+import SlackFeed from './slack-feed';
 
-const NewsFeedSwapper = () =>
-  ( <div className="feedField"><SlackFeed /></div> );
+const NewsFeedSwapper = React.createClass({
+  render: function() {
+		return (
+			<div className="feedField">
+				<SlackFeed />
+			</div>
+		);
+	}
+});
 
-module.exports = NewsFeedSwapper;
+export default NewsFeedSwapper;

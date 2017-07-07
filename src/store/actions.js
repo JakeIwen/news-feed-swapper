@@ -1,141 +1,93 @@
-// const handleWss = (state, action) => {
-//   switch (action.type) {
-//     case 'ADD_NEW_MESSAGE':
-//       return Object.assign(
-//         {},
-//         state,
-//         messages:
-//       )
-//   }
-// }
+import fetch from 'isomorphic-fetch';
+import { store } from './store';
+import { hashList, buildUrl, formatMessages } from './action-helpers';
 
 
+const setToken = token => ({
+  type: 'SET_TOKEN',
+  token,
+});
 
+const setChannelId = channelId => ({
+  type: 'SET_CHANNEL_ID',
+  channelId,
+});
 
-// socket.on('reconnect_url', (url) => socket.open(url));
+const setUsersById = (userList, botList) => ({
+  type: 'SET_USERS_BY_ID',
+  usersById: hashList([...userList, ...botList]),
+});
 
-// import { createStore, applyMiddleware } from 'redux'
-// import thunk from 'redux-thunk'
-// import reducer from './reducer'
-// import socketMiddleware from './socketMiddleware'
-//
-// export default function configureStore(initialState) {
-//   return createStore(reducer, initialState,
-//       applyMiddleware(thunk, socketMiddleware)
-//   )
-// }
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var ActionTypes;
-(function (ActionTypes) {
-  ActionTypes[ActionTypes["HIDE_INFO_PANEL"] = 'HIDE_INFO_PANEL'] = "HIDE_INFO_PANEL";
-    ActionTypes[ActionTypes["WEBSOCKET_CONNECT"] = 'WEBSOCKET_CONNECT'] = "WEBSOCKET_CONNECT";
-    ActionTypes[ActionTypes["SHOW_INFO_PANEL"] = 'SHOW_INFO_PANEL'] = "SHOW_INFO_PANEL";
-    ActionTypes[ActionTypes["TOGGLE_SHOW_QUOTES"] = 'TOGGLE_SHOW_QUOTES'] = "TOGGLE_SHOW_QUOTES";
-    ActionTypes[ActionTypes["TOGGLE_BUILTIN_QUOTES"] = 'TOGGLE_BUILTIN_QUOTES'] = "TOGGLE_BUILTIN_QUOTES";
-    ActionTypes[ActionTypes["SELECT_NEW_QUOTE"] = 'SELECT_NEW_QUOTE'] = "SELECT_NEW_QUOTE";
-    ActionTypes[ActionTypes["HIDE_QUOTE"] = 'HIDE_QUOTE'] = "HIDE_QUOTE";
-    ActionTypes[ActionTypes["DELETE_QUOTE"] = 'DELETE_QUOTE'] = "DELETE_QUOTE";
-    ActionTypes[ActionTypes["ADD_QUOTE"] = 'ADD_QUOTE'] = "ADD_QUOTE";
-    ActionTypes[ActionTypes["RESET_HIDDEN_QUOTES"] = 'RESET_HIDDEN_QUOTES'] = "RESET_HIDDEN_QUOTES";
-    ActionTypes[ActionTypes["HASH_USER_LIST"] = 'HASH_USER_LIST'] = "HASH_USER_LIST";
-})(ActionTypes || (ActionTypes = {}));
-exports.default = ActionTypes;
-function generateID() {
-    let key = '';
-    while (key.length < 16) {
-        key += Math.random().toString(16).substr(2);
-    }
-    return key.substr(0, 16);
-}
-function webSocketConnect() {
-    return {
-        type: ActionTypes.WEBSOCKET_CONNECT
-    };
-}
-exports.webSocketConnect = webSocketConnect;
-function hideInfoPanel() {
-    return {
-        type: ActionTypes.HIDE_INFO_PANEL
-    };
-}
-exports.hideInfoPanel = hideInfoPanel;
-function showInfoPanel() {
-    return {
-        type: ActionTypes.SHOW_INFO_PANEL
-    };
-}
-exports.showInfoPanel = showInfoPanel;
-function toggleShowQuotes() {
-    return {
-        type: ActionTypes.TOGGLE_SHOW_QUOTES
-    };
-}
-exports.toggleShowQuotes = toggleShowQuotes;
-function toggleBuiltinQuotes() {
-    return (dispatch) => {
-        dispatch({
-            type: ActionTypes.TOGGLE_BUILTIN_QUOTES
-        });
-        dispatch(selectNewQuote());
-    };
-}
-exports.toggleBuiltinQuotes = toggleBuiltinQuotes;
-function addQuote(text, source) {
-    const id = generateID();
-    return {
-        type: ActionTypes.ADD_QUOTE,
-        id,
-        text,
-        source,
-    };
-}
-exports.addQuote = addQuote;
-function resetHiddenQuotes() {
-    return {
-        type: ActionTypes.RESET_HIDDEN_QUOTES,
-    };
-}
-exports.resetHiddenQuotes = resetHiddenQuotes;
-function removeCurrentQuote() {
-    return (dispatch, getState) => {
-        const state = getState();
-        if (state.isCurrentQuoteCustom) {
-            dispatch({
-                type: ActionTypes.DELETE_QUOTE,
-                id: state.currentQuoteID,
-            });
-        }
-        else {
-            dispatch({
-                type: ActionTypes.HIDE_QUOTE,
-                id: state.currentQuoteID,
-            });
-        }
-        dispatch(selectNewQuote());
-    };
-}
-exports.removeCurrentQuote = removeCurrentQuote;
+const requestRtm = () => ({ type: 'REQUEST_RTM' });
 
-function selectNewQuote() {
-    return (dispatch, getState) => {
-        const state = getState();
-        const builtinQuotes = [];
-        const customQuotes = state.customQuotes;
-        const allQuotes = builtinQuotes.concat(customQuotes);
-        if (allQuotes.length < 1) {
-            return dispatch({
-                type: ActionTypes.SELECT_NEW_QUOTE,
-                isCustom: false,
-                id: null,
-            });
-        }
-        const quoteIndex = Math.floor(Math.random() * allQuotes.length);
-        dispatch({
-            type: ActionTypes.SELECT_NEW_QUOTE,
-            isCustom: (quoteIndex >= builtinQuotes.length),
-            id: allQuotes[quoteIndex].id,
-        });
-    };
-}
-exports.selectNewQuote = selectNewQuote;
+const receiveRtm = rtm => ({
+  type: 'RECEIVE_RTM',
+  rtm,
+  receivedAt: Date.now(),
+});
+
+const requestMessages = () => ({
+  type: 'REQUEST_MESSAGES',
+});
+
+const receiveMessages = messages => ({
+  type: 'RECEIVE_MESSAGES',
+  messages,
+  receivedAt: Date.now(),
+});
+
+export const wsConnect = (url, userId) => ({
+  type: 'WS_CONNECT',
+  url,
+  userId
+});
+
+export const wsConnecting = () => ({ type: 'WS_CONNECTING' });
+export const wsConnected = () => ({ type: 'WS_CONNECTED' });
+export const wsDisconnected = () => ({ type: 'WS_DISCONNECTED' });
+
+export const addMessage = newMessage => ({
+  type: 'ADD_MESSAGE',
+  newMessage: formatMessages([newMessage])[0],
+});
+
+export const postMessage = (channel, text) => ({
+  type: 'POST_CHAT_MESSAGE',
+  channel,
+  text,
+});
+
+export const postInit = () => ( {type: 'POST_MESSAGE_INIT'} );
+
+export const postComplete = () => ( {type: 'POST_MESSAGE_COMPLETE'} );
+
+export const fetchMessages = (apiMethod, channelId) => dispatch => {
+  const token = store.getState().token;
+  console.log('API METHOD, token', apiMethod, token);
+  dispatch(setChannelId(channelId));
+  dispatch(requestMessages());
+  return fetch( buildUrl(token, apiMethod, channelId) )
+    .then(
+      res => res.json(),
+      error => console.log('An error occured.', error)
+    )
+    .then(mssages => dispatch(receiveMessages(formatMessages(mssages.messages)))
+    );
+};
+
+export const fetchRtm = token => dispatch => {
+  dispatch(setToken(token));
+  dispatch(requestRtm());
+  return fetch( buildUrl(token, "rtm.start") )
+    .then(
+      res => res.json(),
+      error => console.log('An error occured.', error)
+    )
+    .then(rtm => {
+      console.log('rtm', rtm);
+      dispatch(receiveRtm(rtm));
+      dispatch(wsConnect(rtm.url, rtm.self.id));
+      dispatch(setUsersById(rtm.users, rtm.bots));
+      return dispatch(fetchMessages("channels.history", rtm.channels[0].id));
+    });
+};

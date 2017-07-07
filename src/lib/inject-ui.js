@@ -1,35 +1,21 @@
-const React = require('react');
-const NewsFeedSwapper = require('../components/index.jsx');
-import { render } from 'react-dom';
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 import { Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
-import reducer from '../store/reducer.js';
-import socketMiddleware from '../socketMiddleware';
+import { store } from '../store/store';
 
-// const storePromise = () =>
-//   createStore(reducer, null, applyMiddleware(thunk, socketMiddleware));
+import NewsFeedSwapper from '../components/index.jsx';
 
-const initialState =
-{showQuotes: true,
-builtinQuotesEnabled: true,
-showInfoPanel: true,
-featureIncrement: 0,
-isCurrentQuoteCustom: false,
-currentQuoteID: 1,
-hiddenBuiltinQuotes: false,
-customQuotes: null};
-	
 export function isAlreadyInjected() {
 	return document.querySelector( '#nfe-container' ) != null;
 }
 
 export default function injectUI( streamContainer ) {
-	const store = createStore(reducer, initialState, applyMiddleware(thunk, socketMiddleware));
 	const nfeContainer = document.createElement("div");
+	console.log('nfe conatiner made, NFS', NewsFeedSwapper);
 	nfeContainer.id = "nfe-container";
 	streamContainer.appendChild(nfeContainer);
-	render(
+	ReactDOM.render(
 		<Provider store={store}>
 			<NewsFeedSwapper />
 		</Provider>,
